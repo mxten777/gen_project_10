@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="version" content="v2.1.0">
   <title>운영진 관리 - 오산고 71회 동기 송년회</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -391,36 +395,62 @@
     }
 
     function clearCache() {
-      if (confirm('브라우저 캐시를 초기화하고 페이지를 새로고침합니다.\n모바일에서 이전 데이터가 보일 때 사용하세요.')) {
-        // 캐시 버전 강제 업데이트
-        const newVersion = Date.now().toString();
-        localStorage.setItem('cacheVersion', newVersion);
-        sessionStorage.setItem('pageVersion', newVersion);
-        
-        // 서비스 워커 캐시도 클리어 시도
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for(let registration of registrations) {
-              registration.unregister();
-            }
-          });
-        }
-        
-        // 브라우저 캐시 클리어 시도
-        if ('caches' in window) {
-          caches.keys().then(function(names) {
-            names.forEach(function(name) {
-              caches.delete(name);
+      if (confirm('모든 캐시를 완전히 초기화합니다.\n- 브라우저 캐시\n- localStorage 데이터\n- 세션 데이터\n\n계속하시겠습니까?')) {
+        try {
+          // 1. 모든 localStorage 데이터 백업
+          const attendeesBackup = localStorage.getItem('attendees');
+          
+          // 2. 전체 localStorage 클리어
+          localStorage.clear();
+          
+          // 3. attendees 데이터만 복원 (최신 버전으로)
+          if (attendeesBackup) {
+            localStorage.setItem('attendees', attendeesBackup);
+          }
+          
+          // 4. 새로운 캐시 버전 설정
+          const newVersion = Date.now().toString();
+          localStorage.setItem('cacheVersion', newVersion);
+          localStorage.setItem('forceReload', 'true');
+          
+          // 5. 세션 스토리지 클리어
+          sessionStorage.clear();
+          sessionStorage.setItem('pageVersion', newVersion);
+          
+          // 6. 서비스 워커 완전 제거
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              registrations.forEach(function(registration) {
+                registration.unregister();
+              });
             });
+          }
+          
+          // 7. 브라우저 캐시 완전 삭제
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              names.forEach(function(name) {
+                caches.delete(name);
+              });
+            });
+          }
+          
+          // 8. 쿠키 삭제 시도
+          document.cookie.split(";").forEach(function(c) { 
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
           });
+          
+          alert('✅ 캐시가 완전히 초기화되었습니다!\n\n📱 모바일에서도:\n1. 브라우저 설정 > 캐시 삭제\n2. 또는 시크릿/사생활 보호 모드로 접속하세요.');
+          
+          // 9. URL에 타임스탬프 추가하여 강제 리로드
+          const url = new URL(window.location.href);
+          url.searchParams.set('_t', Date.now());
+          window.location.href = url.toString();
+          
+        } catch (error) {
+          console.error('캐시 클리어 중 오류:', error);
+          alert('❌ 캐시 클리어 중 오류가 발생했습니다.\n수동으로 브라우저 설정에서 캐시를 삭제해주세요.');
         }
-        
-        alert('캐시가 초기화되었습니다.\n페이지를 새로고침합니다.');
-        
-        // 페이지 강제 새로고침 (캐시 무시)
-        setTimeout(() => {
-          window.location.reload(true);
-        }, 1000);
       }
     }
 
@@ -433,13 +463,24 @@
       if (e.key === 'Enter') addAttendee();
     });
 
-    // 캐시 버전 체크
+    // 강력한 캐시 버전 체크 및 새로고침 기능
     function checkCacheVersion() {
       const currentVersion = localStorage.getItem('cacheVersion');
       const pageVersion = sessionStorage.getItem('pageVersion');
+      const forceReload = localStorage.getItem('forceReload');
+      
+      // 강제 리로드 플래그가 있으면 즉시 리로드
+      if (forceReload === 'true') {
+        localStorage.removeItem('forceReload');
+        const url = new URL(window.location.href);
+        url.searchParams.set('_cache', Date.now());
+        window.location.replace(url.toString());
+        return;
+      }
       
       if (currentVersion && currentVersion !== pageVersion) {
         sessionStorage.setItem('pageVersion', currentVersion);
+        console.log('캐시 업데이트 감지 - 데이터 새로고침');
         // 데이터 새로고침
         updateDataAndUI();
       }
