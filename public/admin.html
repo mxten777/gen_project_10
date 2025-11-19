@@ -96,12 +96,19 @@
             >
               🗑️ 전체 초기화
             </button>
+            <button
+              onclick="clearCache()"
+              class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              🔄 캐시 초기화
+            </button>
             <div class="text-sm text-slate-300 mt-4 p-3 bg-slate-800 rounded-lg">
               <p class="mb-1">💡 <strong>사용법:</strong></p>
               <p class="text-xs">• 체크인 버튼으로 출석 관리</p>
               <p class="text-xs">• 삭제 버튼으로 개별 제거</p>
               <p class="text-xs">• 복사/다운로드로 명단 백업</p>
               <p class="text-xs text-red-300">• ⚠️ 전체 초기화는 신중히 사용</p>
+              <p class="text-xs text-orange-300">• 🔄 캐시 초기화는 모바일 데이터 문제 시</p>
             </div>
           </div>
         </div>
@@ -186,6 +193,8 @@
 
     function saveAttendees() {
       localStorage.setItem('attendees', JSON.stringify(attendees));
+      // 캐시 버전 업데이트로 다른 페이지에 변경 알림
+      localStorage.setItem('cacheVersion', Date.now().toString());
     }
 
     function addAttendee() {
@@ -381,6 +390,40 @@
       }
     }
 
+    function clearCache() {
+      if (confirm('브라우저 캐시를 초기화하고 페이지를 새로고침합니다.\n모바일에서 이전 데이터가 보일 때 사용하세요.')) {
+        // 캐시 버전 강제 업데이트
+        const newVersion = Date.now().toString();
+        localStorage.setItem('cacheVersion', newVersion);
+        sessionStorage.setItem('pageVersion', newVersion);
+        
+        // 서비스 워커 캐시도 클리어 시도
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+              registration.unregister();
+            }
+          });
+        }
+        
+        // 브라우저 캐시 클리어 시도
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) {
+              caches.delete(name);
+            });
+          });
+        }
+        
+        alert('캐시가 초기화되었습니다.\n페이지를 새로고침합니다.');
+        
+        // 페이지 강제 새로고침 (캐시 무시)
+        setTimeout(() => {
+          window.location.reload(true);
+        }, 1000);
+      }
+    }
+
     // Enter 키로 추가 기능
     document.getElementById('newName').addEventListener('keypress', function(e) {
       if (e.key === 'Enter') addAttendee();
@@ -390,8 +433,41 @@
       if (e.key === 'Enter') addAttendee();
     });
 
+    // 캐시 버전 체크
+    function checkCacheVersion() {
+      const currentVersion = localStorage.getItem('cacheVersion');
+      const pageVersion = sessionStorage.getItem('pageVersion');
+      
+      if (currentVersion && currentVersion !== pageVersion) {
+        sessionStorage.setItem('pageVersion', currentVersion);
+        // 데이터 새로고침
+        updateDataAndUI();
+      }
+    }
+
+    // 데이터 업데이트 및 새로고침
+    function updateDataAndUI() {
+      loadAttendees();
+      renderAttendees();
+      updateStats();
+    }
+
     // 페이지 로드 시 실행
-    loadAttendees();
+    window.addEventListener('load', function() {
+      // 초기 캐시 버전 설정
+      if (!sessionStorage.getItem('pageVersion')) {
+        sessionStorage.setItem('pageVersion', Date.now().toString());
+      }
+      
+      updateDataAndUI();
+      
+      // 주기적으로 캐시 버전 체크 (관리자 페이지는 더 자주)
+      setInterval(checkCacheVersion, 2000);
+      checkCacheVersion();
+      
+      // 주기적으로 캐시 체크
+      setInterval(checkCacheVersion, 5000);
+    });
   </script>
 </body>
 </html>

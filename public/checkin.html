@@ -152,7 +152,29 @@
         checkedInAt: new Date().toLocaleString('ko-KR')
       });
       localStorage.setItem('attendees', JSON.stringify(attendees));
+      
+      // 캐시 버전 업데이트
+      localStorage.setItem('cacheVersion', Date.now().toString());
     }
+    
+    // 캐시 버전 체크
+    function checkCacheVersion() {
+      const currentVersion = localStorage.getItem('cacheVersion');
+      const pageVersion = sessionStorage.getItem('pageVersion');
+      
+      if (currentVersion && currentVersion !== pageVersion) {
+        sessionStorage.setItem('pageVersion', currentVersion);
+        console.log('캐시 업데이트 감지');
+      }
+    }
+    
+    // 페이지 로드 시 초기화
+    window.addEventListener('load', function() {
+      if (!sessionStorage.getItem('pageVersion')) {
+        sessionStorage.setItem('pageVersion', Date.now().toString());
+      }
+      setInterval(checkCacheVersion, 3000);
+    });
     
     function resetForm() {
       document.getElementById('checkinForm').classList.remove('hidden');

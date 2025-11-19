@@ -124,8 +124,27 @@
     </div>
 
     <script>
+        // 캐시 버전 체크 및 새로고침 기능
+        function checkCacheVersion() {
+            const currentVersion = localStorage.getItem('cacheVersion');
+            const pageVersion = sessionStorage.getItem('pageVersion');
+            
+            if (currentVersion && currentVersion !== pageVersion) {
+                sessionStorage.setItem('pageVersion', currentVersion);
+                console.log('캐시 업데이트 감지 - 페이지 새로고침');
+                location.reload();
+            }
+        }
+
         // QR코드 생성
         document.addEventListener('DOMContentLoaded', function() {
+            // 초기 캐시 버전 설정
+            if (!sessionStorage.getItem('pageVersion')) {
+                sessionStorage.setItem('pageVersion', Date.now().toString());
+            }
+            
+            // 주기적 캐시 체크
+            setInterval(checkCacheVersion, 3000);
             const canvas = document.getElementById('qrcode');
             const fallbackImg = document.getElementById('qrcode-fallback');
             
