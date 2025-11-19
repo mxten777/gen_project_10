@@ -13,7 +13,7 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 min-h-screen">
+<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-slate-900 min-h-screen">
   <!-- 네비게이션 바 -->
   <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
     <div class="max-w-7xl mx-auto px-2 sm:px-4">
@@ -22,14 +22,13 @@
           <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
           <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
         </div>
-        <div class="flex space-x-1 sm:space-x-2">
-          <a href="invitation.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+        <div class="flex space-x-2">
+          <a href="invitation.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors min-w-[44px] text-center">
             🎊 <span class="hidden sm:inline">초대장</span>
           </a>
-          <a href="checkin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-green-600 text-white shadow-sm">
+          <a href="checkin.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-green-600 text-white shadow-sm min-w-[44px] text-center">
             📝 <span class="hidden sm:inline">체크인</span>
           </a>
-
         </div>
       </div>
     </div>
@@ -124,9 +123,28 @@
       const name = document.getElementById('nameInput').value.trim();
       const phone = document.getElementById('phoneInput').value.trim();
       
+      // 입력값 검증
       if (!name) {
-        alert('이름을 입력해주세요!');
+        showErrorMessage('이름을 입력해주세요!');
+        document.getElementById('nameInput').focus();
         return;
+      }
+      
+      // 중복 체크인 방지
+      try {
+        const existingAttendees = JSON.parse(localStorage.getItem('attendees') || '[]');
+        const duplicateCheck = existingAttendees.find(a => a.name === name && a.checkedIn);
+        
+        if (duplicateCheck) {
+          if (confirm(`"${name}"님은 이미 체크인되어 있습니다.\n\n체크인 시간: ${duplicateCheck.checkedInAt}\n\n그래도 계속하시겠습니까?`)) {
+            // 사용자가 계속하기로 선택
+          } else {
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('중복 체크 오류:', error);
+        // 에러가 있어도 체크인은 계속 진행
       }
       
       // 체크인 완료 화면으로 전환
@@ -145,18 +163,53 @@
       }
       
       // 로컬 스토리지에 저장 (관리 페이지에서 사용)
-      let attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
-      attendees.push({
-        id: Date.now().toString(),
-        name: name,
-        phone: phone || '',
-        checkedIn: true,
-        checkedInAt: new Date().toLocaleString('ko-KR')
-      });
-      localStorage.setItem('attendees', JSON.stringify(attendees));
+      try {
+        let attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
+        attendees.push({
+          id: Date.now().toString(),
+          name: name,
+          phone: phone || '',
+          checkedIn: true,
+          checkedInAt: new Date().toLocaleString('ko-KR')
+        });
+        localStorage.setItem('attendees', JSON.stringify(attendees));
+        
+        // 캐시 버전 업데이트
+        localStorage.setItem('cacheVersion', Date.now().toString());
+        
+        console.log('✅ 체크인 데이터 저장 완료:', name);
+      } catch (error) {
+        console.error('❌ 데이터 저장 오류:', error);
+        showErrorMessage('데이터 저장 중 오류가 발생했지만 체크인은 완료되었습니다.');
+      }
+    }
+    
+    // 에러 메시지 표시 함수
+    function showErrorMessage(message) {
+      // 기존 에러 메시지 제거
+      const existingError = document.querySelector('.error-message');
+      if (existingError) {
+        existingError.remove();
+      }
       
-      // 캐시 버전 업데이트
-      localStorage.setItem('cacheVersion', Date.now().toString());
+      // 새 에러 메시지 생성
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error-message fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+      errorDiv.textContent = message;
+      
+      document.body.appendChild(errorDiv);
+      
+      // 3초 후 자동 제거
+      setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+          errorDiv.style.opacity = '0';
+          setTimeout(() => {
+            if (document.body.contains(errorDiv)) {
+              document.body.removeChild(errorDiv);
+            }
+          }, 300);
+        }
+      }, 3000);
     }
     
     // 강력한 캐시 버전 체크

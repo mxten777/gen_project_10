@@ -19,11 +19,11 @@
                     <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
                     <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
                 </div>
-                <div class="flex space-x-1 sm:space-x-2">
-                    <a href="invitation.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-blue-600 text-white shadow-sm">
+                <div class="flex space-x-2">
+                    <a href="invitation.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-blue-600 text-white shadow-sm min-w-[44px] text-center">
                         🎊 <span class="hidden sm:inline">초대장</span>
                     </a>
-                    <a href="checkin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+                    <a href="checkin.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors min-w-[44px] text-center">
                         📝 <span class="hidden sm:inline">체크인</span>
                     </a>
                 </div>
@@ -164,16 +164,22 @@
             // 체크인 URL 생성 (모바일 접근 가능)
             let checkinUrl;
             if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                // 로컬 서버인 경우 - 사용자가 직접 IP를 확인할 수 있도록 안내
-                const currentUrl = window.location.href;
-                checkinUrl = currentUrl.replace('invitation.html', 'checkin.html');
+                // 로컬 서버인 경우 - 실제 IP 주소로 QR 코드 생성
+                const port = window.location.port || '8080';
                 
-                // 콘솔과 화면에 모바일 접근 방법 안내
-                console.log('📱 모바일에서 QR코드 스캔이 안 될 경우:');
-                console.log('1. 컴퓨터 IP 주소 확인: ipconfig (Windows) 또는 ifconfig (Mac/Linux)');
-                console.log('2. 모바일과 같은 WiFi 연결 확인');
-                console.log('3. 방화벽에서 8000번 포트 허용');
-                console.log('현재 URL:', checkinUrl);
+                // 감지된 실제 IP 주소 사용
+                const localIP = '192.168.45.14';  // ipconfig에서 확인된 IP
+                checkinUrl = `http://${localIP}:${port}/checkin.html`;
+                
+                // 모바일 접근 방법 안내
+                console.log('📱 모바일 QR 스캔 안내:');
+                console.log('1. 컴퓨터와 모바일이 같은 WiFi에 연결되어 있는지 확인');
+                console.log('2. QR 코드 URL:', checkinUrl);
+                console.log('3. QR 스캔이 안되면 모바일에서 직접 URL 입력');
+                
+                // 페이지에 모바일 접근 링크 표시
+                displayMobileAccessInfo(checkinUrl);
+                
             } else {
                 // 배포된 서버인 경우 원래 방식 사용
                 checkinUrl = window.location.origin + window.location.pathname.replace('invitation.html', 'checkin.html');
@@ -183,6 +189,23 @@
             // 외부 API로 QR코드 생성
             generateQRWithAPI(checkinUrl);
 
+            // 모바일 접근 정보 표시 함수
+            function displayMobileAccessInfo(url) {
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'mt-4 p-3 bg-blue-700 bg-opacity-50 rounded-lg text-xs text-blue-200';
+                infoDiv.innerHTML = `
+                    <div class="font-semibold mb-1">📱 모바일 직접 접속:</div>
+                    <div class="break-all text-blue-300 font-mono text-xs">${url}</div>
+                    <div class="mt-1 text-xs opacity-80">QR 스캔이 안되면 위 링크를 모바일 브라우저에 입력하세요</div>
+                `;
+                
+                // QR 영역 다음에 추가
+                const qrSection = document.querySelector('.bg-gradient-to-br.from-blue-800');
+                if (qrSection) {
+                    qrSection.appendChild(infoDiv);
+                }
+            }
+
             function generateQRWithAPI(url) {
                 const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=74x74&margin=1&data=${encodeURIComponent(url)}`;
                 
@@ -191,12 +214,37 @@
                 canvas.style.display = 'none';
                 
                 fallbackImg.onload = function() {
-                    console.log('QR코드 생성 성공!');
+                    console.log('✅ QR코드 생성 성공!');
+                    showSuccessMessage('QR 코드가 성공적으로 생성되었습니다');
                 };
                 
                 fallbackImg.onerror = function() {
-                    console.error('QR코드 생성 실패, 링크 버튼으로 대체');
-                    canvas.parentElement.innerHTML = '<div class="text-xs text-gray-800 text-center p-2 cursor-pointer" onclick="window.location.href=\'checkin.html\'">📱<br><span class="text-blue-600 font-semibold">체크인</span><br><span class="text-xs">탭하기</span></div>';
+                    console.error('❌ QR코드 생성 실패, 대체 UI로 교체');
+                    
+                    // Google Charts API로 재시도
+                    const googleQR = `https://chart.googleapis.com/chart?chs=74x74&cht=qr&chl=${encodeURIComponent(url)}`;
+                    const retryImg = new Image();
+                    
+                    retryImg.onload = function() {
+                        fallbackImg.src = googleQR;
+                        console.log('✅ Google Charts QR 생성 성공');
+                    };
+                    
+                    retryImg.onerror = function() {
+                        // 모든 QR 서비스 실패 시 대체 UI
+                        canvas.parentElement.innerHTML = `
+                            <div class="w-full h-full bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex flex-col items-center justify-center text-white cursor-pointer hover:from-green-600 hover:to-blue-600 transition-all p-2" 
+                                 onclick="window.location.href='checkin.html'"
+                                 title="QR 코드를 생성할 수 없어 직접 링크를 제공합니다">
+                                <div class="text-2xl mb-1">📱</div>
+                                <div class="text-xs font-bold">체크인</div>
+                                <div class="text-xs opacity-80">직접 이동</div>
+                            </div>
+                        `;
+                        showErrorMessage('QR 코드 생성에 실패했습니다. 버튼을 클릭하여 체크인하세요.');
+                    };
+                    
+                    retryImg.src = googleQR;
                 };
 
                 // 클릭 시 체크인 페이지로 이동
@@ -207,6 +255,51 @@
                 fallbackImg.title = '클릭하여 체크인 페이지로 이동';
             }
         });
+        
+        // 성공 메시지 표시 함수
+        function showSuccessMessage(message) {
+            showToastMessage(message, 'success');
+        }
+        
+        // 에러 메시지 표시 함수  
+        function showErrorMessage(message) {
+            showToastMessage(message, 'error');
+        }
+        
+        // 토스트 메시지 통합 함수
+        function showToastMessage(message, type = 'info') {
+            const existingToast = document.querySelector('.toast-message');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const colors = {
+                success: 'bg-green-600',
+                error: 'bg-red-600', 
+                info: 'bg-blue-600'
+            };
+            
+            const toast = document.createElement('div');
+            toast.className = `toast-message fixed top-20 left-1/2 transform -translate-x-1/2 ${colors[type]} text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm max-w-xs text-center`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // 페이드 인 효과
+            setTimeout(() => {
+                toast.style.opacity = '1';
+            }, 100);
+            
+            // 자동 제거
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, type === 'error' ? 4000 : 2000);
+        }
     </script>
 </body>
 </html>

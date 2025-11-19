@@ -13,7 +13,7 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 min-h-screen">
+<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-slate-900 min-h-screen">
   <!-- 네비게이션 바 -->
   <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
     <div class="max-w-7xl mx-auto px-2 sm:px-4">
@@ -22,14 +22,14 @@
           <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
           <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
         </div>
-        <div class="flex space-x-1 sm:space-x-2">
-          <a href="invitation.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+        <div class="flex space-x-2">
+          <a href="invitation.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors min-w-[44px] text-center">
             🎊 <span class="hidden sm:inline">초대장</span>
           </a>
-          <a href="checkin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+          <a href="checkin.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors min-w-[44px] text-center">
             📝 <span class="hidden sm:inline">체크인</span>
           </a>
-          <a href="admin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-purple-600 text-white shadow-sm">
+          <a href="admin.html" class="px-3 py-2 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-purple-600 text-white shadow-sm min-w-[44px] text-center">
             ⚙️ <span class="hidden sm:inline">관리</span>
           </a>
         </div>
@@ -179,7 +179,11 @@
             <tbody id="attendeesList">
               <tr id="emptyMessage">
                 <td colspan="5" class="text-center py-8 text-slate-400">
-                  아직 등록된 참석자가 없습니다.
+                  <div class="mb-2">🎯 아직 등록된 참석자가 없습니다</div>
+                  <div class="text-xs text-slate-500">
+                    좌측 "참석자 추가" 섹션에서 이름을 입력하여<br>
+                    참석자를 등록해보세요!
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -198,13 +202,9 @@
       if (saved) {
         attendees = JSON.parse(saved);
       } else {
-        // 샘플 데이터
-        attendees = [
-          { id: '1', name: '김철수', phone: '010-1234-5678', checkedIn: true, checkedInAt: '2025-11-29 13:45' },
-          { id: '2', name: '이영희', phone: '010-2345-6789', checkedIn: false },
-          { id: '3', name: '박민수', checkedIn: true, checkedInAt: '2025-11-29 13:52' },
-        ];
-        saveAttendees();
+        // 깔끔한 초기 상태 - 샘플 데이터 없음
+        attendees = [];
+        // 최초 접근 시에는 localStorage에 저장하지 않음 (사용자가 실제 데이터 입력 시에만 저장)
       }
       sortAttendees(); // 초기 로드 시 이름순 정렬
     }
