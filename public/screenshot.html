@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오산고 71회 동기 송년회 초대장</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #3b4b87 0%, #6366f1 50%, #8b5cf6 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 12px;
+        }
+        .invitation-card {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-height: calc(100vh - 24px);
+            overflow: hidden;
+        }
+        .header-gradient {
+            background: linear-gradient(135deg, #3b4b87 0%, #6366f1 100%);
+        }
+        .reunion-badge {
+            background: linear-gradient(135deg, #f97316 0%, #dc2626 100%);
+        }
+        .section-card {
+            background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+            border-left: 3px solid #3b82f6;
+        }
+        .qr-container {
+            background: linear-gradient(145deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+    <div class="invitation-card max-w-xs w-full">
+        <!-- 헤더 -->
+        <div class="header-gradient text-white p-3 text-center">
+            <div class="flex items-center justify-center mb-2">
+                <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 mr-2">
+                <div class="text-left">
+                    <h1 class="text-sm font-bold">오산고등학교</h1>
+                    <p class="text-xs opacity-80">OSAN HIGH SCHOOL</p>
+                </div>
+            </div>
+            <div class="reunion-badge rounded-xl py-2 px-3 text-white">
+                <h2 class="text-lg font-black">71회 동기 송년회에 초대합니다</h2>
+                <p class="text-xs opacity-90">CLASS OF 1981 REUNION</p>
+            </div>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div class="p-3 space-y-3">
+            <!-- 메시지 -->
+            <div class="text-center bg-yellow-50 rounded-lg p-2">
+                <p class="text-sm text-gray-700 font-medium">
+                    🌟 <strong>오래 보니 더 좋은 우리</strong> 🌟<br>
+                    <span class="text-xs">2025년의 끝자락을 함께 마무리해요</span>
+                </p>
+            </div>
+
+            <!-- 행사 정보 -->
+            <div class="section-card rounded-lg p-2.5">
+                <h3 class="text-sm font-bold text-blue-800 mb-1.5 flex items-center">
+                    📅 행사 안내
+                </h3>
+                <div class="text-xs space-y-1 text-gray-700">
+                    <div><span class="font-medium">일시:</span> 2025년 11월 29일(토) 14:00~17:00</div>
+                    <div><span class="font-medium">장소:</span> 서울대입구역 <span class="font-bold text-orange-600">꼬꼬닭갈비</span></div>
+                    <div><span class="font-medium">인원:</span> 약 54명 예정</div>
+                </div>
+            </div>
+
+            <!-- 프로그램 -->
+            <div class="section-card rounded-lg p-2.5">
+                <h3 class="text-sm font-bold text-blue-800 mb-1.5">🎉 주요 순서</h3>
+                <div class="text-xs space-y-0.5 text-gray-600">
+                    <div>• 입장 & 출석체크 / 개회 & 사회자 인사</div>
+                    <div>• 소모임 소개 및 후원자 소개</div>
+                    <div>• 동기 대표 인사말 & 교가 제창</div>
+                    <div>• 건배사 후 식사 & 자유 대화</div>
+                    <div>• 단체사진 촬영 및 폐회 안내</div>
+                </div>
+            </div>
+
+            <!-- QR 코드 -->
+            <div class="qr-container rounded-lg p-2.5 text-center">
+                <h3 class="text-sm font-bold text-blue-800 mb-2">📱 참석 확인하기</h3>
+                <div class="bg-white rounded-lg p-2 inline-block mb-1.5">
+                    <div id="qrcode" class="w-16 h-16 mx-auto flex items-center justify-center">
+                        <div class="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    </div>
+                </div>
+                <p class="text-xs text-blue-700 font-medium mb-1">QR 스캔 또는 아래 링크</p>
+                <div class="bg-blue-50 rounded p-1.5">
+                    <p class="text-xs font-mono text-blue-800 break-all" id="checkinUrl">링크 생성중...</p>
+                </div>
+            </div>
+
+            <!-- 마무리 -->
+            <div class="text-center bg-gray-50 rounded-lg p-2">
+                <div class="flex justify-center space-x-2 text-lg mb-1">
+                    <span>🎉</span>
+                    <span>🥳</span>
+                    <span>🍻</span>
+                    <span>❤️</span>
+                </div>
+                <p class="text-xs text-gray-600 font-medium">
+                    11월 29일, 서울대입구역 꼬꼬닭갈비에서 반가운 얼굴로 뵙겠습니다
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentHost = window.location.hostname;
+            const currentPort = window.location.port;
+            const baseUrl = `http://${currentHost}${currentPort ? ':' + currentPort : ''}`;
+            
+            let checkinUrl;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                const localIP = '192.168.45.14';
+                const port = window.location.port || '8080';
+                checkinUrl = `http://${localIP}:${port}/checkin.html`;
+            } else {
+                checkinUrl = `${baseUrl}/checkin.html`;
+            }
+            
+            document.getElementById('checkinUrl').textContent = checkinUrl;
+            
+            // QR 코드 생성
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(checkinUrl)}&margin=8&bgcolor=ffffff&color=000000`;
+            
+            const qrImg = document.createElement('img');
+            qrImg.src = qrApiUrl;
+            qrImg.alt = 'QR코드';
+            qrImg.className = 'w-16 h-16 rounded';
+            
+            qrImg.onload = function() {
+                document.getElementById('qrcode').innerHTML = '';
+                document.getElementById('qrcode').appendChild(qrImg);
+            };
+            
+            qrImg.onerror = function() {
+                const fallbackUrl = `https://chart.googleapis.com/chart?chs=100x100&cht=qr&chl=${encodeURIComponent(checkinUrl)}`;
+                qrImg.src = fallbackUrl;
+                
+                qrImg.onerror = function() {
+                    document.getElementById('qrcode').innerHTML = `
+                        <div class="w-16 h-16 bg-blue-100 rounded flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-xl">📱</div>
+                                <div class="text-xs text-blue-600 font-medium">체크인</div>
+                            </div>
+                        </div>
+                    `;
+                };
+            };
+        });
+    </script>
+</body>
+</html>

@@ -59,7 +59,7 @@
     </nav>
 
     <div class="pt-16 min-h-screen flex items-center justify-center px-2 py-2 sm:px-4">
-        <main class="w-full max-w-lg bg-gradient-to-br from-blue-800 via-purple-900 to-blue-700 bg-opacity-95 rounded-2xl shadow-2xl border border-blue-700 px-4 py-6 sm:px-8 sm:py-10">
+        <main class="w-full max-w-md bg-gradient-to-br from-blue-800 via-purple-900 to-blue-700 bg-opacity-95 rounded-2xl shadow-2xl border border-blue-700 px-3 py-3 sm:px-4 sm:py-4 my-2">
             <!-- 헤더 -->
             <div class="flex items-center justify-between mb-4">
                 <div class="px-2 py-0.5 rounded-full border border-blue-400 text-xs text-blue-200 uppercase tracking-wider bg-gradient-to-r from-blue-500 to-purple-600">INVITATION</div>
@@ -67,13 +67,13 @@
             </div>
 
             <!-- 제목 -->
-            <div class="text-center mb-6">
-                <h1 class="text-2xl sm:text-3xl md:text-5xl font-extrabold text-blue-200 mb-2">오산고 71회</h1>
-                <h2 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-blue-300">동기 송년회</h2>
+            <div class="text-center mb-4">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-blue-200 mb-1">오산고 71회</h1>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-blue-300">동기 송년회</h2>
             </div>
 
             <!-- 부제목 -->
-            <div class="text-center text-lg text-slate-200 mb-6 font-medium">
+            <div class="text-center text-sm text-slate-200 mb-4 font-medium">
                 오래 보니 더 좋은 우리,<br>2025년의 끝자락을 함께 마무리해요.
             </div>
 
@@ -82,9 +82,9 @@
             <div class="h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 rounded-full my-4"></div>
 
             <!-- 행사 안내 -->
-            <section class="mb-6">
-                <h3 class="text-xl font-semibold text-blue-200 mb-3">📅 행사 안내</h3>
-                <div class="text-slate-200 space-y-2">
+            <section class="mb-4">
+                <h3 class="text-lg font-semibold text-blue-200 mb-2">📅 행사 안내</h3>
+                <div class="text-sm text-slate-200 space-y-1">
                     <div><span class="text-slate-400">일시:</span> 2025년 11월 29일(토) 14:00 ~ 17:00</div>
                     <div><span class="text-slate-400">장소:</span> 서울대입구역 <span class="font-bold text-yellow-300">꼬꼬닭갈비</span></div>
                     <div><span class="text-slate-400">인원:</span> 약 54명 예정</div>
@@ -92,9 +92,9 @@
             </section>
 
             <!-- 프로그램 -->
-            <section class="mb-6">
-                <h3 class="text-xl font-semibold text-blue-200 mb-3">🎉 주요 순서</h3>
-                <div class="text-sm text-slate-300 space-y-1">
+            <section class="mb-4">
+                <h3 class="text-lg font-semibold text-blue-200 mb-2">🎉 주요 순서</h3>
+                <div class="text-xs text-slate-300 space-y-0.5">
                     <div>• 입장 & 출석체크 / 개회 & 사회자 인사</div>
                     <div>• 소모임 소개 및 후원자 소개</div>
                     <div>• 동기 대표 인사말 & 교가 제창</div>
@@ -104,46 +104,37 @@
             </section>
 
             <!-- QR 체크인 -->
-            <div class="bg-gradient-to-br from-blue-800 via-slate-800 to-slate-900 rounded-2xl p-3 sm:p-4 mb-6">
-                <div class="flex items-center gap-3 sm:gap-4">
-                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-lg flex items-center justify-center p-1 flex-shrink-0">
+            <div class="bg-gradient-to-br from-blue-800 via-slate-800 to-slate-900 rounded-xl p-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-14 h-14 bg-white rounded-lg flex items-center justify-center p-1 flex-shrink-0">
                         <canvas id="qrcode" class="w-full h-full"></canvas>
                         <img id="qrcode-fallback" style="display: none;" class="w-full h-full object-contain" alt="QR코드">
                     </div>
                     <div class="text-slate-200 min-w-0 flex-1">
-                        <div class="font-bold text-sm sm:text-lg text-blue-200 mb-1">QR 찍고 미리 체크인해 주세요</div>
-                        <div class="text-xs sm:text-sm leading-relaxed">
+                        <div class="font-bold text-sm text-blue-200 mb-1">QR 찍고 미리 체크인</div>
+                        <div class="text-xs leading-relaxed">
                             휴대폰 카메라로 QR을 비추면<br>
-                            행사 안내와 출석 체크를<br>
-                            한 번에 확인하실 수 있습니다
-                        </div>
-                        <div class="text-xs text-slate-400 mt-2 border-t border-slate-600 pt-2">
-                            💡 QR코드가 안 될 경우 클릭하세요
+                            출석 체크를 할 수 있습니다
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- 푸터 -->
-            <div class="text-center">
-                <div class="text-lg text-yellow-300 font-semibold mb-2">
+            <div class="text-center mb-4">
+                <div class="text-sm text-yellow-300 font-semibold mb-2">
                     ✨ "오래 보니 좋고, 앞으로 더 좋아질 우리"
                 </div>
-                <div class="text-sm text-slate-400">
+                <div class="text-xs text-slate-400">
                     11월 29일, 서울대입구역 꼬꼬닭갈비에서 반가운 얼굴로 뵙겠습니다.
                 </div>
             </div>
 
             <!-- 네비게이션 버튼 -->
-            <div class="mt-8 pt-6 border-t border-slate-600">
-                <div class="flex gap-2">
-                    <button onclick="window.location.href='invitation.html'" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm">
-                        🎊 초대장
-                    </button>
-                    <button onclick="window.location.href='checkin.html'" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg text-lg font-semibold">
-                        📝 체크인 하러 가기
-                    </button>
-                </div>
+            <div class="pt-3 border-t border-slate-600">
+                <button onclick="window.location.href='checkin.html'" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-semibold">
+                    📝 체크인 하러 가기
+                </button>
             </div>
         </main>
     </div>
