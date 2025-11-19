@@ -34,6 +34,9 @@
           <a href="admin.html" class="px-4 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
             ⚙️ 관리
           </a>
+          <button onclick="toggleSchoolSong()" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            🎵 교가
+          </button>
         </div>
         
         <!-- 햄버거 메뉴 버튼 -->
@@ -57,6 +60,9 @@
         <a href="admin.html" class="block px-4 py-3 rounded-lg text-sm font-semibold bg-purple-600 text-white text-center">
           ⚙️ 관리
         </a>
+        <button onclick="toggleSchoolSong()" class="block w-full px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
+          🎵 교가
+        </button>
       </div>
     </div>
   </nav>
@@ -213,6 +219,68 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 교가 모달 -->
+  <div id="schoolSongModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+    <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 m-4 max-w-lg w-full max-h-[80vh] overflow-y-auto border border-blue-500">
+      <div class="text-center mb-4">
+        <h2 class="text-2xl font-bold text-white mb-2">🎵 오산고 교가</h2>
+        <p class="text-blue-300 text-sm">다섯 뫼의 아이들</p>
+      </div>
+      
+      <div class="space-y-4 text-white">
+        <!-- 1절 -->
+        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-yellow-300 mb-2">1절</h3>
+          <p class="leading-relaxed text-sm">
+            네 눈이 밝구나 엑스빛같다<br>
+            하늘을 꿰뚫고 땅을 들추어<br>
+            온가지 진리를 캐고 말련다<br>
+            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
+          </p>
+        </div>
+        
+        <!-- 2절 -->
+        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-yellow-300 mb-2">2절</h3>
+          <p class="leading-relaxed text-sm">
+            네 손이 솔갑고 힘도 크구나<br>
+            불길도 만지고 돌도 주물러<br>
+            새로운 누리를 짓고 말련다<br>
+            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
+          </p>
+        </div>
+        
+        <!-- 3절 -->
+        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-yellow-300 mb-2">3절</h3>
+          <p class="leading-relaxed text-sm">
+            네 맘이 맑구나 예민도 하다<br>
+            하늘과 땅 사이 미묘한 것이<br>
+            거울에 더 맑게 비치는구나<br>
+            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
+          </p>
+        </div>
+        
+        <!-- 4절 -->
+        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
+          <h3 class="text-lg font-semibold text-yellow-300 mb-2">4절</h3>
+          <p class="leading-relaxed text-sm">
+            네 인격 높구나 정성과 사랑<br>
+            네 손발 가는데 화평이 있고<br>
+            무심한 미물도 다 믿는구나<br>
+            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
+          </p>
+        </div>
+      </div>
+      
+      <div class="mt-6 text-center">
+        <button onclick="toggleSchoolSong()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+          닫기
+        </button>
       </div>
     </div>
   </div>
@@ -597,6 +665,38 @@
       renderAttendees();
       updateStats();
     }
+
+    // 교가 모달 토글 기능
+    function toggleSchoolSong() {
+        const modal = document.getElementById('schoolSongModal');
+        if (modal) {
+            modal.classList.toggle('hidden');
+            
+            // 모달이 열릴 때 모바일 메뉴 닫기
+            const mobileMenu = document.getElementById('mobile-menu');
+            if (!modal.classList.contains('hidden') && mobileMenu) {
+                mobileMenu.classList.add('hidden');
+                const hamburgerBtn = document.getElementById('hamburger-btn');
+                if (hamburgerBtn) {
+                    const svg = hamburgerBtn.querySelector('svg path');
+                    if (svg) {
+                        svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                    }
+                }
+            }
+        }
+    }
+
+    // 모달 외부 클릭 시 닫기
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('schoolSongModal');
+        const modalContent = modal?.querySelector('.bg-white');
+        
+        if (modal && !modal.classList.contains('hidden') && 
+            event.target === modal && !modalContent?.contains(event.target)) {
+            toggleSchoolSong();
+        }
+    });
 
     // 햄버거 메뉴 토글 기능
     function initializeHamburgerMenu() {
