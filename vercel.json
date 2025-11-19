@@ -1,20 +1,7 @@
 {
   "version": 2,
-  "buildCommand": null,
-  "outputDirectory": "public",
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html",
-      "status": 200
-    }
-  ],
-  "functions": {},
+  "public": true,
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
     {
       "source": "/invitation",
       "destination": "/invitation.html"
@@ -24,8 +11,12 @@
       "destination": "/checkin.html"
     },
     {
-      "source": "/admin",
+      "source": "/admin", 
       "destination": "/admin.html"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
     }
   ]
 }
