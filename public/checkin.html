@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>체크인 - 오산고 71회 동기 송년회</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-blue-800 min-h-screen">
+  <!-- 네비게이션 바 -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
+          <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
+        </div>
+        <div class="flex space-x-1 sm:space-x-2">
+          <a href="invitation.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            🎊 <span class="hidden sm:inline">초대장</span>
+          </a>
+          <a href="checkin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-green-600 text-white shadow-sm">
+            📝 <span class="hidden sm:inline">체크인</span>
+          </a>
+          <a href="admin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            ⚙️ <span class="hidden sm:inline">관리</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="pt-16 flex items-center justify-center px-2 sm:px-4 min-h-screen">
+    <div id="checkinForm" class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-4 sm:p-8 border border-blue-500 max-w-md w-full">
+      <div class="text-center mb-8">
+        <div class="text-4xl mb-4">📝</div>
+        <h1 class="text-3xl font-bold text-white mb-2">체크인</h1>
+        <h2 class="text-xl text-blue-300 font-semibold">오산고 71회 동기 송년회</h2>
+      </div>
+
+      <div class="mb-6">
+        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4 text-center">
+          <p class="text-blue-200 text-sm mb-1">📅 2025년 11월 29일(토) 14:00 ~ 17:00</p>
+          <p class="text-blue-200 text-sm">📍 서울대입구역 꼬꼬닭갈비</p>
+        </div>
+      </div>
+
+      <form class="space-y-4" onsubmit="handleCheckIn(event)">
+        <div>
+          <label class="block text-white text-sm font-semibold mb-2">
+            이름 <span class="text-red-400">*</span>
+          </label>
+          <input
+            type="text"
+            id="nameInput"
+            placeholder="이름을 입력해주세요"
+            class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none transition-colors"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="block text-white text-sm font-semibold mb-2">
+            연락처 (선택사항)
+          </label>
+          <input
+            type="text"
+            id="phoneInput"
+            placeholder="010-1234-5678"
+            class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none transition-colors"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-4 rounded-lg transition-all duration-200 transform hover:scale-105"
+        >
+          ✨ 체크인하기
+        </button>
+      </form>
+
+
+
+      <div class="mt-6 text-center">
+        <p class="text-slate-400 text-xs">
+          ✨ "오래 보니 좋고, 앞으로 더 좋아질 우리"
+        </p>
+      </div>
+    </div>
+
+    <!-- 체크인 완료 화면 -->
+    <div id="successScreen" class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-8 border border-green-400 max-w-md w-full text-center hidden">
+      <div class="text-6xl mb-6">✅</div>
+      <h1 class="text-3xl font-bold text-white mb-4">체크인 완료!</h1>
+      <div class="bg-green-800 bg-opacity-50 rounded-lg p-4 mb-6">
+        <p id="successName" class="text-green-200 text-lg font-semibold"></p>
+        <p id="successTime" class="text-green-300 text-sm mt-1"></p>
+        <p id="successPhone" class="text-green-300 text-sm"></p>
+      </div>
+      <div class="mb-6">
+        <h3 class="text-white font-semibold mb-2">🎉 오산고 71회 동기 송년회</h3>
+        <p class="text-slate-300 text-sm">2025년 11월 29일(토) 14:00 ~ 17:00</p>
+        <p class="text-slate-300 text-sm">서울대입구역 꼬꼬닭갈비</p>
+      </div>
+      <button
+        onclick="resetForm()"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+      >
+        다른 참석자 체크인
+      </button>
+    </div>
+  </div>
+
+  <script>
+    function handleCheckIn(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('nameInput').value.trim();
+      const phone = document.getElementById('phoneInput').value.trim();
+      
+      if (!name) {
+        alert('이름을 입력해주세요!');
+        return;
+      }
+      
+      // 체크인 완료 화면으로 전환
+      document.getElementById('checkinForm').classList.add('hidden');
+      document.getElementById('successScreen').classList.remove('hidden');
+      
+      // 체크인 정보 표시
+      document.getElementById('successName').textContent = name + '님';
+      document.getElementById('successTime').textContent = '체크인 시간: ' + new Date().toLocaleString('ko-KR');
+      
+      if (phone) {
+        document.getElementById('successPhone').textContent = '연락처: ' + phone;
+        document.getElementById('successPhone').classList.remove('hidden');
+      } else {
+        document.getElementById('successPhone').classList.add('hidden');
+      }
+      
+      // 로컬 스토리지에 저장 (관리 페이지에서 사용)
+      let attendees = JSON.parse(localStorage.getItem('attendees') || '[]');
+      attendees.push({
+        id: Date.now().toString(),
+        name: name,
+        phone: phone || '',
+        checkedIn: true,
+        checkedInAt: new Date().toLocaleString('ko-KR')
+      });
+      localStorage.setItem('attendees', JSON.stringify(attendees));
+    }
+    
+    function resetForm() {
+      document.getElementById('checkinForm').classList.remove('hidden');
+      document.getElementById('successScreen').classList.add('hidden');
+      document.getElementById('nameInput').value = '';
+      document.getElementById('phoneInput').value = '';
+    }
+  </script>
+</body>
+</html>

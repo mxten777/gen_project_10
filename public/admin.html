@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>운영진 관리 - 오산고 71회 동기 송년회</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 min-h-screen">
+  <!-- 네비게이션 바 -->
+  <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
+    <div class="max-w-7xl mx-auto px-2 sm:px-4">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-2 sm:space-x-4">
+          <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
+          <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
+        </div>
+        <div class="flex space-x-1 sm:space-x-2">
+          <a href="invitation.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            🎊 <span class="hidden sm:inline">초대장</span>
+          </a>
+          <a href="checkin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            📝 <span class="hidden sm:inline">체크인</span>
+          </a>
+          <a href="admin.html" class="px-2 py-1 sm:px-4 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold bg-purple-600 text-white shadow-sm">
+            ⚙️ <span class="hidden sm:inline">관리</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 메인 컨텐츠 -->
+  <div class="pt-16 px-2 sm:px-4 pb-4">
+    <div class="max-w-6xl mx-auto">
+      <!-- 헤더 -->
+      <header class="mb-6 sm:mb-8 text-center">
+        <h1 class="text-2xl sm:text-4xl font-bold text-white mb-2">오산고 71회 동기 송년회</h1>
+        <h2 class="text-xl sm:text-2xl font-semibold text-blue-300 mb-4">운영진 대시보드</h2>
+        <div class="bg-blue-800 bg-opacity-50 rounded-lg p-4 inline-block">
+          <p class="text-white text-lg">
+            총 <span id="totalCount" class="font-bold text-yellow-300">0명</span> 중 
+            <span id="checkedInCount" class="font-bold text-green-300">0명</span> 체크인 완료
+          </p>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <!-- 참석자 추가 섹션 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-blue-500">
+          <h3 class="text-xl font-semibold text-white mb-4">참석자 추가</h3>
+          <div class="space-y-4">
+            <input
+              type="text"
+              id="newName"
+              placeholder="이름"
+              class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
+            />
+            <input
+              type="text"
+              id="newPhone"
+              placeholder="전화번호 (선택사항)"
+              class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
+            />
+            <button
+              onclick="addAttendee()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              추가
+            </button>
+          </div>
+        </div>
+
+        <!-- 액션 버튼 섹션 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-green-500">
+          <h3 class="text-xl font-semibold text-white mb-4">명단 관리</h3>
+          <div class="space-y-3">
+            <button
+              onclick="copyToClipboard()"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              📋 클립보드 복사
+            </button>
+            <button
+              onclick="exportToCSV()"
+              class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              📁 CSV 다운로드
+            </button>
+            <button
+              onclick="clearAllData()"
+              class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              🗑️ 전체 초기화
+            </button>
+            <div class="text-sm text-slate-300 mt-4 p-3 bg-slate-800 rounded-lg">
+              <p class="mb-1">💡 <strong>사용법:</strong></p>
+              <p class="text-xs">• 체크인 버튼으로 출석 관리</p>
+              <p class="text-xs">• 삭제 버튼으로 개별 제거</p>
+              <p class="text-xs">• 복사/다운로드로 명단 백업</p>
+              <p class="text-xs text-red-300">• ⚠️ 전체 초기화는 신중히 사용</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 통계 섹션 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-yellow-500">
+          <h3 class="text-xl font-semibold text-white mb-4">실시간 현황</h3>
+          <div class="space-y-3">
+            <div class="bg-slate-800 rounded-lg p-3">
+              <p class="text-yellow-300 font-semibold">체크인 현황</p>
+              <p id="progressText" class="text-2xl font-bold text-white">0 / 0</p>
+              <div class="w-full bg-slate-700 rounded-full h-2 mt-2">
+                <div id="progressBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-3">
+              <p class="text-blue-300 font-semibold">완료율</p>
+              <p id="completionRate" class="text-2xl font-bold text-white">0%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 참석자 명단 -->
+      <div class="mt-8 bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-500">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-xl font-semibold text-white">참석자 명단</h3>
+          <div class="flex items-center gap-4">
+            <select id="sortOption" onchange="sortAttendees()" class="bg-slate-700 text-white text-sm px-3 py-1 rounded border border-slate-600 focus:border-blue-400">
+              <option value="name">이름순</option>
+              <option value="checkin">체크인순</option>
+              <option value="time">등록순</option>
+            </select>
+            <div class="text-sm text-slate-300">
+              <span id="listCount">0명</span> 표시중
+            </div>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-96 overflow-y-auto border border-slate-600 rounded-lg">
+          <table class="w-full text-white text-sm">
+            <thead class="bg-slate-800 sticky top-0">
+              <tr class="border-b border-slate-600">
+                <th class="text-left py-2 px-2 font-semibold">이름</th>
+                <th class="text-left py-2 px-2 font-semibold hidden sm:table-cell">전화번호</th>
+                <th class="text-center py-2 px-2 font-semibold">상태</th>
+                <th class="text-center py-2 px-2 font-semibold hidden md:table-cell">체크인 시간</th>
+                <th class="text-center py-2 px-2 font-semibold">액션</th>
+              </tr>
+            </thead>
+            <tbody id="attendeesList">
+              <tr id="emptyMessage">
+                <td colspan="5" class="text-center py-8 text-slate-400">
+                  아직 등록된 참석자가 없습니다.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let attendees = [];
+
+    // 페이지 로드 시 로컬 스토리지에서 데이터 불러오기
+    function loadAttendees() {
+      const saved = localStorage.getItem('attendees');
+      if (saved) {
+        attendees = JSON.parse(saved);
+      } else {
+        // 샘플 데이터
+        attendees = [
+          { id: '1', name: '김철수', phone: '010-1234-5678', checkedIn: true, checkedInAt: '2025-11-29 13:45' },
+          { id: '2', name: '이영희', phone: '010-2345-6789', checkedIn: false },
+          { id: '3', name: '박민수', checkedIn: true, checkedInAt: '2025-11-29 13:52' },
+        ];
+        saveAttendees();
+      }
+      sortAttendees(); // 초기 로드 시 이름순 정렬
+    }
+
+    function saveAttendees() {
+      localStorage.setItem('attendees', JSON.stringify(attendees));
+    }
+
+    function addAttendee() {
+      const name = document.getElementById('newName').value.trim();
+      const phone = document.getElementById('newPhone').value.trim();
+      
+      if (name) {
+        const newAttendee = {
+          id: Date.now().toString(),
+          name: name,
+          phone: phone || '',
+          checkedIn: false
+        };
+        attendees.push(newAttendee);
+        saveAttendees();
+        sortAttendees(); // 자동 정렬 적용
+        
+        document.getElementById('newName').value = '';
+        document.getElementById('newPhone').value = '';
+      }
+    }
+
+    function removeAttendee(id) {
+      attendees = attendees.filter(a => a.id !== id);
+      saveAttendees();
+      sortAttendees(); // 삭제 후 정렬 유지
+    }
+
+    function toggleCheckIn(id) {
+      attendees = attendees.map(a => 
+        a.id === id 
+          ? { 
+              ...a, 
+              checkedIn: !a.checkedIn, 
+              checkedInAt: !a.checkedIn ? new Date().toLocaleString('ko-KR') : undefined 
+            }
+          : a
+      );
+      saveAttendees();
+      sortAttendees(); // 체크인 후 정렬 유지
+    }
+
+    function sortAttendees() {
+      const sortOption = document.getElementById('sortOption').value;
+      
+      switch(sortOption) {
+        case 'name':
+          attendees.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+          break;
+        case 'checkin':
+          attendees.sort((a, b) => {
+            if (a.checkedIn === b.checkedIn) {
+              return a.name.localeCompare(b.name, 'ko');
+            }
+            return b.checkedIn - a.checkedIn; // 체크인 완료가 먼저
+          });
+          break;
+        case 'time':
+          attendees.sort((a, b) => {
+            const timeA = a.checkedInAt || a.registeredAt || '0';
+            const timeB = b.checkedInAt || b.registeredAt || '0';
+            return timeB.localeCompare(timeA); // 최신순
+          });
+          break;
+      }
+      
+      renderAttendees();
+      saveAttendees();
+    }
+
+    function renderAttendees() {
+      const tbody = document.getElementById('attendeesList');
+      const emptyMessage = document.getElementById('emptyMessage');
+      
+      if (attendees.length === 0) {
+        emptyMessage.style.display = 'table-row';
+      } else {
+        emptyMessage.style.display = 'none';
+        
+        const rows = attendees.map(attendee => `
+          <tr class="border-b border-slate-700 hover:bg-white hover:bg-opacity-5">
+            <td class="py-2 px-2 font-semibold">
+              <div>${attendee.name}</div>
+              <div class="text-xs text-slate-400 sm:hidden">${attendee.phone || ''}</div>
+            </td>
+            <td class="py-2 px-2 text-slate-300 hidden sm:table-cell">${attendee.phone || '-'}</td>
+            <td class="py-2 px-2 text-center">
+              <span class="px-2 py-1 rounded-full text-xs font-semibold ${
+                attendee.checkedIn 
+                  ? 'bg-green-600 text-white' 
+                  : 'bg-slate-600 text-slate-300'
+              }">
+                ${attendee.checkedIn ? '✓' : '○'}
+              </span>
+              <div class="text-xs text-slate-400 mt-1 md:hidden">
+                ${attendee.checkedInAt ? attendee.checkedInAt.split(' ')[1] : ''}
+              </div>
+            </td>
+            <td class="py-2 px-2 text-center text-xs text-slate-300 hidden md:table-cell">
+              ${attendee.checkedInAt || '-'}
+            </td>
+            <td class="py-2 px-2 text-center">
+              <div class="flex flex-col sm:flex-row justify-center space-y-1 sm:space-y-0 sm:space-x-1">
+                <button
+                  onclick="toggleCheckIn('${attendee.id}')"
+                  class="px-2 py-1 rounded text-xs font-semibold transition-colors ${
+                    attendee.checkedIn
+                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  }"
+                >
+                  ${attendee.checkedIn ? '취소' : '체크인'}
+                </button>
+                <button
+                  onclick="removeAttendee('${attendee.id}')"
+                  class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold transition-colors"
+                >
+                  삭제
+                </button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+        
+        tbody.innerHTML = emptyMessage.outerHTML + rows;
+      }
+      
+      updateStats();
+    }
+
+    function updateStats() {
+      const total = attendees.length;
+      const checkedIn = attendees.filter(a => a.checkedIn).length;
+      const rate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+      
+      document.getElementById('totalCount').textContent = total + '명';
+      document.getElementById('checkedInCount').textContent = checkedIn + '명';
+      document.getElementById('progressText').textContent = `${checkedIn} / ${total}`;
+      document.getElementById('completionRate').textContent = rate + '%';
+      document.getElementById('progressBar').style.width = rate + '%';
+      document.getElementById('listCount').textContent = total + '명';
+    }
+
+    function copyToClipboard() {
+      const text = attendees.map(a => 
+        `${a.name}\t${a.phone || ''}\t${a.checkedIn ? '완료' : '미완료'}\t${a.checkedInAt || ''}`
+      ).join('\n');
+      
+      navigator.clipboard.writeText(`이름\t전화번호\t체크인 여부\t체크인 시간\n${text}`)
+        .then(() => alert('명단이 클립보드에 복사되었습니다!'))
+        .catch(() => alert('복사 중 오류가 발생했습니다.'));
+    }
+
+    function exportToCSV() {
+      const headers = ['이름', '전화번호', '체크인 여부', '체크인 시간'];
+      const rows = attendees.map(a => [
+        a.name,
+        a.phone || '',
+        a.checkedIn ? '완료' : '미완료',
+        a.checkedInAt || ''
+      ]);
+      
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `송년회_참석자명단_${new Date().toISOString().split('T')[0]}.csv`);
+      link.click();
+    }
+
+    function clearAllData() {
+      if (attendees.length === 0) {
+        alert('초기화할 데이터가 없습니다.');
+        return;
+      }
+
+      const confirmMessage = `정말로 모든 참석자 데이터를 삭제하시겠습니까?\n\n현재 등록된 인원: ${attendees.length}명\n체크인 완료: ${attendees.filter(a => a.checkedIn).length}명\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`;
+      
+      if (confirm(confirmMessage)) {
+        // 추가 확인
+        const finalConfirm = confirm('마지막 확인입니다.\n정말로 전체 데이터를 초기화하시겠습니까?');
+        if (finalConfirm) {
+          attendees = [];
+          localStorage.removeItem('attendees');
+          renderAttendees();
+          updateStats();
+          alert('✅ 모든 데이터가 초기화되었습니다.');
+        }
+      }
+    }
+
+    // Enter 키로 추가 기능
+    document.getElementById('newName').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') addAttendee();
+    });
+    
+    document.getElementById('newPhone').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') addAttendee();
+    });
+
+    // 페이지 로드 시 실행
+    loadAttendees();
+  </script>
+</body>
+</html>
