@@ -106,6 +106,18 @@
             >
               🔄 캐시 초기화
             </button>
+            <button
+              onclick="exportDataForSharing()"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              📱 데이터 공유
+            </button>
+            <button
+              onclick="importSharedData()"
+              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              📲 데이터 가져오기
+            </button>
             <div class="text-sm text-slate-300 mt-4 p-3 bg-slate-800 rounded-lg">
               <p class="mb-1">💡 <strong>사용법:</strong></p>
               <p class="text-xs">• 체크인 버튼으로 출석 관리</p>
@@ -113,6 +125,8 @@
               <p class="text-xs">• 복사/다운로드로 명단 백업</p>
               <p class="text-xs text-red-300">• ⚠️ 전체 초기화는 신중히 사용</p>
               <p class="text-xs text-orange-300">• 🔄 캐시 초기화는 모바일 데이터 문제 시</p>
+              <p class="text-xs text-blue-300">• 📱 데이터 공유로 다른 디바이스에 복사</p>
+              <p class="text-xs text-green-300">• 📲 데이터 가져오기로 업데이트</p>
             </div>
           </div>
         </div>
@@ -451,6 +465,73 @@
           console.error('캐시 클리어 중 오류:', error);
           alert('❌ 캐시 클리어 중 오류가 발생했습니다.\n수동으로 브라우저 설정에서 캐시를 삭제해주세요.');
         }
+      }
+    }
+
+    // 행사 당일 데이터 공유 기능
+    function exportDataForSharing() {
+      if (attendees.length === 0) {
+        alert('공유할 데이터가 없습니다.');
+        return;
+      }
+      
+      const dataToShare = {
+        attendees: attendees,
+        exportTime: new Date().toLocaleString('ko-KR'),
+        version: 'v2.1.0'
+      };
+      
+      const dataString = JSON.stringify(dataToShare, null, 2);
+      
+      // 클립보드에 복사
+      navigator.clipboard.writeText(dataString).then(() => {
+        alert(`📋 데이터가 클립보드에 복사되었습니다!\n\n📊 총 ${attendees.length}명의 데이터\n⏰ ${dataToShare.exportTime}\n\n다른 디바이스에서 "데이터 가져오기"를 사용하여 붙여넣으세요.`);
+      }).catch(() => {
+        // 클립보드 실패 시 텍스트 영역에 표시
+        const textarea = document.createElement('textarea');
+        textarea.value = dataString;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        alert('📋 데이터가 클립보드에 복사되었습니다!\n(수동 복사 방식으로 처리됨)');
+      });
+    }
+
+    function importSharedData() {
+      const dataString = prompt('다른 디바이스에서 복사한 데이터를 붙여넣으세요:\n\n(전체 JSON 데이터를 붙여넣어주세요)');
+      
+      if (!dataString) return;
+      
+      try {
+        const importedData = JSON.parse(dataString);
+        
+        if (!importedData.attendees || !Array.isArray(importedData.attendees)) {
+          throw new Error('올바르지 않은 데이터 형식입니다.');
+        }
+        
+        const importCount = importedData.attendees.length;
+        const exportTime = importedData.exportTime || '알 수 없음';
+        
+        if (confirm(`데이터를 가져오시겠습니까?\n\n📊 가져올 데이터: ${importCount}명\n⏰ 내보낸 시간: ${exportTime}\n\n⚠️ 현재 데이터(${attendees.length}명)가 덮어쓰여집니다!`)) {
+          attendees = importedData.attendees;
+          saveAttendees();
+          
+          // 캐시 버전 업데이트로 다른 페이지 동기화
+          localStorage.setItem('cacheVersion', Date.now().toString());
+          
+          renderAttendees();
+          updateStats();
+          
+          alert(`✅ 데이터 가져오기 완료!\n\n📊 총 ${importCount}명의 데이터가 로드되었습니다.\n⏰ 원본 시간: ${exportTime}`);
+        }
+        
+      } catch (error) {
+        alert('❌ 데이터 형식이 올바르지 않습니다.\n\n올바른 JSON 형식의 데이터를 붙여넣어주세요.');
+        console.error('데이터 가져오기 오류:', error);
       }
     }
 
