@@ -1067,16 +1067,25 @@
       }
       
       try {
-        // Firebase 연결 상태 확인
+        // 1. Firebase 연결 상태 확인
         if (!window.firebaseManager) {
           alert('❌ Firebase가 연결되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
           return;
         }
         
-        // 실시간 리스너가 비활성화된 경우 재연결
-        if (!firebaseUnsubscribe) {
-          console.log('🔄 실시간 리스너 재시작 중...');
-          loadAttendeesFromFirebase();
+        // 2. 현재 데이터 상태 확인
+        console.log('📊 현재 데이터 상태 확인 중...');
+        const currentData = await window.firebaseManager.getAttendees();
+        const currentSampleCount = currentData.filter(a => a.dataType === 'SAMPLE_DATA').length;
+        const currentTotalCount = currentData.length;
+        
+        console.log(`현재 상태: 총 ${currentTotalCount}명 (샘플: ${currentSampleCount}명)`);
+        
+        // 3. 안전성 확인
+        if (currentTotalCount + count > 100) {
+          if (!confirm(`⚠️ 총 데이터가 ${currentTotalCount + count}개가 됩니다.\n(현재 ${currentTotalCount}개 + 생성 ${count}개)\n\n계속하시겠습니까?`)) {
+            return;
+          }
         }
         
         updateFirebaseStatus('syncing', '🎭 샘플 데이터 생성 중...');
@@ -1095,51 +1104,102 @@
           '대한항공', '우리은행', 'LG화학', '두산그룹', 'LS그룹'
         ];
         
+        // 4. 중복 방지를 위한 현재 이름/전화번호 수집
+        const existingNames = new Set(currentData.map(a => a.name));
+        const existingPhones = new Set(currentData.map(a => a.phone));
+        
+        let successCount = 0;
+        let skipCount = 0;
+        
         for (let i = 0; i < count; i++) {
-          const randomName = sampleNames[i % sampleNames.length] + (i >= 20 ? (Math.floor(i/20) + 1) : '');
+          // 고유한 이름 생성 (중복 체크)
+          let attemptCount = 0;
+          let randomName, finalName;
+          
+          do {
+            randomName = sampleNames[i % sampleNames.length];
+            finalName = randomName + (attemptCount > 0 ? attemptCount : '') + (i >= 20 ? (Math.floor(i/20) + 1) : '');
+            attemptCount++;
+          } while (existingNames.has(finalName) && attemptCount < 10);
+          
+          if (existingNames.has(finalName)) {
+            console.log(`⏭️ 이름 중복으로 건너뜀: ${finalName}`);
+            skipCount++;
+            continue;
+          }
+          
+          // 고유한 전화번호 생성
+          let randomPhone;
+          let phoneAttempt = 0;
+          do {
+            const baseTime = Date.now() + i + phoneAttempt * 1000;
+            const phoneNum1 = String(1000 + (baseTime % 9000));
+            const phoneNum2 = String(1000 + ((baseTime * 7) % 9000));
+            randomPhone = `010-${phoneNum1}-${phoneNum2}`;
+            phoneAttempt++;
+          } while (existingPhones.has(randomPhone) && phoneAttempt < 10);
+          
+          if (existingPhones.has(randomPhone)) {
+            console.log(`⏭️ 전화번호 중복으로 건너뜀: ${randomPhone}`);
+            skipCount++;
+            continue;
+          }
+          
           const randomCompany = sampleCompanies[Math.floor(Math.random() * sampleCompanies.length)];
-          const randomPhone = `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
-          const randomCompanions = Math.floor(Math.random() * 3); // 0-2명
+          const randomCompanions = Math.floor(Math.random() * 3);
           
           const sampleAttendee = {
-            name: randomName,
+            name: finalName,
             phone: randomPhone,
             company: randomCompany,
             companions: randomCompanions,
-            message: `안녕하세요! ${randomName}입니다. 송년회 참석하겠습니다.`,
+            message: `안녕하세요! ${finalName}입니다. 송년회 참석하겠습니다.`,
             checkedIn: true,
             dataType: 'SAMPLE_DATA',
-            timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // 최근 일주일 내 랜덤
+            timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
           };
           
-          if (window.firebaseManager) {
+          try {
             await window.firebaseManager.addAttendee(sampleAttendee);
-          } else {
-            // Firebase 없을 때 로컬에만 추가
-            sampleAttendee.id = 'sample_' + Date.now() + '_' + i;
-            attendees.push(sampleAttendee);
+            
+            // 생성 성공 시 중복 방지 세트에 추가
+            existingNames.add(finalName);
+            existingPhones.add(randomPhone);
+            successCount++;
+            
+            console.log(`✅ 생성: ${finalName} (${successCount}/${count})`);
+            
+          } catch (error) {
+            console.error(`❌ 생성 실패: ${finalName}`, error);
+            skipCount++;
           }
           
-          // UI 업데이트
-          if (i % 5 === 0 || i === count - 1) {
-            updateFirebaseStatus('syncing', `🎭 샘플 데이터 생성 중... (${i + 1}/${count})`);
-            await new Promise(resolve => setTimeout(resolve, 100)); // 잠시 대기
+          // 진행률 업데이트 (UI 과부하 방지)
+          if (i % 3 === 0 || i === count - 1) {
+            updateFirebaseStatus('syncing', `🎭 샘플 생성: 성공 ${successCount}개, 건너뜀 ${skipCount}개`);
+            await new Promise(resolve => setTimeout(resolve, 50));
           }
         }
         
-        // 생성 완료 후 데이터 재로드
-        console.log('🎭 샘플 데이터 생성 완료, UI 업데이트 중...');
+        // 5. 생성 완료 보고 (실시간 리스너가 자동으로 UI 업데이트함)
+        console.log(`🎭 샘플 데이터 생성 완료: 성공 ${successCount}개, 건너뜀 ${skipCount}개`);
         
-        // Firebase에서 최신 데이터 가져오기
-        if (window.firebaseManager) {
-          const updatedData = await window.firebaseManager.getAttendees();
-          attendees = updatedData;
+        updateFirebaseStatus('online', `✅ 샘플 생성 완료 (성공: ${successCount}개)`);
+        
+        const resultMessage = successCount > 0 
+          ? `✅ ${successCount}명의 샘플 데이터가 생성되었습니다!` + (skipCount > 0 ? `\n⏭️ ${skipCount}개는 중복으로 건너뛰었습니다.` : '')
+          : `⚠️ 중복으로 인해 생성된 데이터가 없습니다.\n기존 샘플 데이터를 먼저 삭제해주세요.`;
+        
+        alert(resultMessage);
+        
+        // 실시간 리스너가 비활성화된 경우에만 수동 업데이트
+        if (!firebaseUnsubscribe) {
+          console.log('🔄 실시간 리스너 없음 - 수동 업데이트');
+          const finalData = await window.firebaseManager.getAttendees();
+          attendees = finalData;
           renderAttendees();
           updateStats();
         }
-        
-        updateFirebaseStatus('online', `✅ 샘플 데이터 생성 완료 (${count}명)`);
-        alert(`✅ ${count}명의 샘플 데이터가 생성되었습니다!\n\n📊 현재 총 ${attendees.length}명의 데이터가 있습니다.`);
         
       } catch (error) {
         console.error('샘플 데이터 생성 오류:', error);
