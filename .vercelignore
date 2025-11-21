@@ -7,7 +7,6 @@ node_modules/
 Thumbs.db
 
 # 개발 전용 파일
-debug.html
 test/
 
 # 백업 파일

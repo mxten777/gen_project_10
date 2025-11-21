@@ -77,36 +77,49 @@ class FirebaseManager {
     async testConnection() {
         try {
             console.log('🔍 Firebase 연결 테스트 중...');
+            console.log('📋 Firebase Config:', firebaseConfig);
+            console.log('🗄️ Firestore DB:', this.db);
             
             // 간단한 쿼리로 연결 테스트
             const testCollection = collection(this.db, 'attendees');
             const testQuery = query(testCollection);
-            await getDocs(testQuery);
+            const querySnapshot = await getDocs(testQuery);
             
             console.log('✅ Firebase 연결 테스트 성공');
+            console.log('📊 찾은 문서 수:', querySnapshot.size);
+            
             this.connectionTested = true;
-            this.showStatus('Firebase 연결됨', 'success');
+            this.showStatus(`Firebase 연결됨 (${querySnapshot.size}개 문서)`, 'success');
             return true;
         } catch (error) {
             console.error('❌ Firebase 연결 테스트 실패:', error);
-            console.error('오류 세부사항:', {
+            console.error('🔍 오류 세부사항:', {
                 code: error.code,
                 message: error.message,
+                stack: error.stack,
                 customData: error.customData
             });
             
             this.connectionTested = false;
-            this.showStatus(`Firebase 오류: ${error.code}`, 'error');
             
             // 구체적인 오류 메시지 제공
+            let errorMsg = error.code || 'unknown-error';
             if (error.code === 'permission-denied') {
                 console.error('🚫 Firestore 보안 규칙 문제: 읽기/쓰기 권한이 거부되었습니다');
+                console.error('💡 Firebase 콘솔 → Firestore → 규칙에서 allow read, write: if true; 설정 필요');
+                errorMsg = '보안 규칙 오류 - 권한 없음';
             } else if (error.code === 'unavailable') {
                 console.error('🌐 네트워크 연결 문제: Firestore 서비스에 접근할 수 없습니다');
+                errorMsg = '네트워크 연결 실패';
             } else if (error.code === 'unauthenticated') {
                 console.error('🔐 인증 문제: Firebase 프로젝트 설정을 확인하세요');
+                errorMsg = '인증 오류';
+            } else if (error.message?.includes('fetch')) {
+                console.error('📡 CORS 또는 네트워크 문제');
+                errorMsg = 'CORS/네트워크 오류';
             }
             
+            this.showStatus(`Firebase 오류: ${errorMsg}`, 'error');
             return false;
         }
     }
@@ -168,7 +181,7 @@ class FirebaseManager {
     }
 
     // 실시간 참석자 목록 리스너
-    onAttendeesUpdate(callback) {
+    listenToAttendees(callback) {
         const q = query(collection(this.db, 'attendees'), orderBy('timestamp', 'desc'));
         return onSnapshot(q, (querySnapshot) => {
             const attendees = [];
@@ -183,6 +196,11 @@ class FirebaseManager {
             console.error('Error in real-time listener:', error);
             this.showStatus('실시간 동기화 오류', 'error');
         });
+    }
+
+    // backward compatible alias
+    onAttendeesUpdate(callback) {
+        return this.listenToAttendees(callback);
     }
 
     // 참석자 정보 업데이트
@@ -209,6 +227,25 @@ class FirebaseManager {
         } catch (error) {
             console.error('Error deleting attendee:', error);
             this.showStatus('삭제 실패', 'error');
+            throw error;
+        }
+    }
+
+    // 모든 참석자 삭제 (관리자용)
+    async clearAllAttendees() {
+        try {
+            const querySnapshot = await getDocs(collection(this.db, 'attendees'));
+            const deletePromises = [];
+            
+            querySnapshot.forEach((doc) => {
+                deletePromises.push(deleteDoc(doc.ref));
+            });
+            
+            await Promise.all(deletePromises);
+            this.showStatus('모든 참석자 삭제 완료', 'success');
+        } catch (error) {
+            console.error('Error clearing all attendees:', error);
+            this.showStatus('전체 삭제 실패', 'error');
             throw error;
         }
     }

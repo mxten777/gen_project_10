@@ -39,19 +39,11 @@
       "destination": "/invitation.html"
     },
     {
-      "source": "/clean",
-      "destination": "/invitation_clean.html"
-    },
-    {
       "source": "/checkin",
       "destination": "/checkin.html"
     },
     {
       "source": "/admin",
-      "destination": "/admin.html"
-    },
-    {
-      "source": "/admin_simple",
       "destination": "/admin.html"
     },
     {
