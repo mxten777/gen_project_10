@@ -141,11 +141,11 @@
         <!-- 버튼들 -->
         <div class="text-center">
             <div class="flex gap-3 mb-6">
-                <button onclick="window.location.href='checkin.html'" 
+                <button onclick="window.location.href='/checkin'" 
                         class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg">
                     📝 체크인
                 </button>
-                <button onclick="window.location.href='admin.html'" 
+                <button onclick="window.location.href='/admin'" 
                         class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg">
                     📊 관리용
                 </button>
@@ -202,8 +202,8 @@
                 console.log('2. 모바일에서 http://[컴퓨터IP]:8080/checkin.html 직접 접속');
                 console.log('3. 예: http://192.168.1.100:8080/checkin.html');
             } else {
-                // 배포된 서버인 경우 원래 방식 사용
-                checkinUrl = window.location.origin + window.location.pathname.replace('invitation.html', 'checkin.html');
+                // 배포된 서버인 경우 깔끔한 URL 사용
+                checkinUrl = window.location.origin + '/checkin';
             }
             console.log('QR코드 URL:', checkinUrl);
             
@@ -240,7 +240,7 @@
                         const container = fallbackImg.parentElement;
                         container.innerHTML = `
                             <div class="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex flex-col items-center justify-center text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all" 
-                                 onclick="window.location.href='checkin.html'">
+                                 onclick="window.location.href='/checkin'">
                                 <div class="text-xl">📱</div>
                                 <div class="text-sm font-bold">체크인</div>
                             </div>
@@ -250,7 +250,7 @@
                 
                 // 클릭 이벤트
                 fallbackImg.onclick = function() {
-                    window.location.href = 'checkin.html';
+                    window.location.href = '/checkin';
                 };
                 fallbackImg.style.cursor = 'pointer';
                 fallbackImg.title = '클릭하여 체크인';

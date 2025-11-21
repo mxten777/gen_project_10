@@ -135,8 +135,8 @@
 
             <!-- 네비게이션 버튼 -->
             <div class="pt-3 border-t border-slate-600">
-                <button onclick="window.location.href='checkin.html'" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-semibold">
-                    📝 체크인 하러 가기
+                <button onclick="window.location.href='/checkin'" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-semibold">
+                    📝 체크인하기
                 </button>
             </div>
         </main>
@@ -202,8 +202,8 @@
                 displayMobileAccessInfo(checkinUrl);
                 
             } else {
-                // 배포된 서버인 경우 원래 방식 사용
-                checkinUrl = window.location.origin + window.location.pathname.replace('invitation.html', 'checkin.html');
+                // 배포된 서버인 경우 깔끔한 URL 사용
+                checkinUrl = window.location.origin + '/checkin';
             }
             console.log('QR코드 URL:', checkinUrl);
             
@@ -270,7 +270,7 @@
 
                 // 클릭 시 체크인 페이지로 이동
                 fallbackImg.onclick = function() {
-                    window.location.href = 'checkin.html';
+                    window.location.href = '/checkin';
                 };
                 fallbackImg.style.cursor = 'pointer';
                 fallbackImg.title = '클릭하여 체크인 페이지로 이동';
