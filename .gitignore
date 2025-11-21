@@ -1,5 +1,44 @@
-﻿node_modules/
-.vercel
-*.log
+﻿# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
 dist/
 build/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Vercel
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Test files (개발용)
+*test*.html
+*demo*.html

@@ -74,6 +74,9 @@
           <a href="/invitation" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             🎊 초대장
           </a>
+          <a href="/clean" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            ✨ 깔끔한
+          </a>
           <a href="/checkin" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             📝 체크인
           </a>
@@ -105,6 +108,9 @@
           <a href="/invitation" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             🎊
           </a>
+          <a href="/clean" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            ✨
+          </a>
           <a href="/checkin" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             📝
           </a>
@@ -129,13 +135,21 @@
     <div id="mobile-menu" class="md:hidden bg-black bg-opacity-95 border-t border-slate-600 hidden">
       <div class="px-4 py-2 space-y-1">
         
-        <!-- 핵심 기능 그룹 -->
+        <!-- 초대장 버전 그룹 -->
         <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700">
-          핵심 기능
+          초대장 버전
         </div>
         <a href="/invitation" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🎊 초대장
+          🎊 메인 초대장
         </a>
+        <a href="/clean" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
+          ✨ 깔끔한 초대장
+        </a>
+        
+        <!-- 핵심 기능 그룹 -->
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
+          핵심 기능
+        </div>
         <a href="/checkin" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
           📝 체크인
         </a>
@@ -251,10 +265,16 @@
               📁 CSV 다운로드
             </button>
             <button
+              onclick="clearFirebaseOnly()"
+              class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              🔥 Firebase만 초기화
+            </button>
+            <button
               onclick="clearAllData()"
               class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              🗑️ 전체 초기화
+              🗑️ 전체 초기화 (Firebase + localStorage)
             </button>
             <button
               onclick="clearCache()"
@@ -738,29 +758,61 @@
       link.click();
     }
 
-    function clearAllData() {
+    async function clearAllData() {
       if (attendees.length === 0) {
         alert('초기화할 데이터가 없습니다.');
         return;
       }
 
-      const confirmMessage = `정말로 모든 참석자 데이터를 삭제하시겠습니까?\n\n현재 등록된 인원: ${attendees.length}명\n체크인 완료: ${attendees.filter(a => a.checkedIn).length}명\n\n⚠️ 이 작업은 되돌릴 수 없습니다!`;
+      const confirmMessage = `🚨 매우 위험한 작업입니다! 🚨\n\n다음 데이터가 모두 삭제됩니다:\n• Firebase의 모든 참석자 데이터 (${attendees.length}명)\n• localStorage의 모든 로컬 데이터\n• 체크인 완료: ${attendees.filter(a => a.checkedIn).length}명\n\n이 작업은 절대 되돌릴 수 없습니다!\n\n정말로 모든 데이터를 삭제하시겠습니까?\n삭제하려면 "DELETE ALL"이라고 정확히 입력하세요:`;
       
-      if (confirm(confirmMessage)) {
-        // 추가 확인
-        const finalConfirm = confirm('마지막 확인입니다.\n정말로 전체 데이터를 초기화하시겠습니까?');
-        if (finalConfirm) {
-          attendees = [];
-          localStorage.removeItem('attendees');
-          renderAttendees();
-          updateStats();
-          alert('✅ 모든 데이터가 초기화되었습니다.');
+      const userInput = prompt(confirmMessage);
+      
+      if (userInput !== 'DELETE ALL') {
+        alert('취소되었습니다. 안전을 위해 정확한 텍스트를 입력해야 합니다.');
+        return;
+      }
+
+      try {
+        // Firebase 데이터 삭제
+        if (window.firebaseManager) {
+          updateFirebaseStatus('syncing', '🔄 Firebase 데이터 삭제 중...');
+          
+          for (const attendee of attendees) {
+            await window.firebaseManager.deleteAttendee(attendee.id);
+          }
         }
+
+        // localStorage 초기화
+        attendees = [];
+        localStorage.removeItem('attendees');
+        localStorage.removeItem('cacheVersion');
+        localStorage.removeItem('firebase_migrated');
+        
+        renderAttendees();
+        updateStats();
+        updateFirebaseStatus('online', '✅ 초기화 완료');
+        
+        alert('✅ 모든 데이터가 완전히 삭제되었습니다.');
+        
+      } catch (error) {
+        console.error('전체 데이터 삭제 오류:', error);
+        updateFirebaseStatus('offline', '❌ 삭제 실패');
+        alert(`삭제 중 오류 발생: ${error.message}`);
       }
     }
 
     function clearCache() {
-      if (confirm('모든 캐시를 완전히 초기화합니다.\n- 브라우저 캐시\n- localStorage 데이터\n- 세션 데이터\n\n계속하시겠습니까?')) {
+      const confirmMessage = `🧹 캐시 완전 초기화 🧹\n\n다음이 모두 삭제됩니다:\n- 브라우저 캐시\n- localStorage 데이터\n- 세션 데이터\n- 임시 파일\n\n⚠️ 이 작업 후 페이지가 새로고침됩니다!\n\n정말로 캐시를 초기화하시겠습니까?\n초기화하려면 "CLEAR CACHE"라고 정확히 입력하세요:`;
+      
+      const userInput = prompt(confirmMessage);
+      
+      if (userInput !== 'CLEAR CACHE') {
+        alert('취소되었습니다. 안전을 위해 정확한 텍스트를 입력해야 합니다.');
+        return;
+      }
+      
+      if (true) {
         try {
           // 1. 모든 localStorage 데이터 백업
           const attendeesBackup = localStorage.getItem('attendees');
@@ -1156,6 +1208,48 @@
       } catch (error) {
         console.error('명단 내보내기 오류:', error);
         alert(`내보내기 실패: ${error.message}`);
+      }
+    }
+
+    // Firebase만 초기화 (localStorage는 유지)
+    async function clearFirebaseOnly() {
+      if (!window.firebaseManager) {
+        alert('Firebase가 연결되지 않았습니다.');
+        return;
+      }
+
+      const firebaseCount = attendees.length;
+      
+      const confirmMessage = `🔥 Firebase 데이터만 초기화 🔥\n\nFirebase의 모든 참석자 데이터가 삭제됩니다:\n• 총 ${firebaseCount}명의 Firebase 데이터\n• 체크인 완료: ${attendees.filter(a => a.checkedIn).length}명\n\n⚠️ localStorage 데이터는 유지됩니다\n⚠️ 이 작업은 되돌릴 수 없습니다!\n\n정말로 Firebase만 초기화하시겠습니까?\n삭제하려면 "FIREBASE DELETE"라고 정확히 입력하세요:`;
+
+      const userInput = prompt(confirmMessage);
+      
+      if (userInput !== 'FIREBASE DELETE') {
+        alert('취소되었습니다. 안전을 위해 정확한 텍스트를 입력해야 합니다.');
+        return;
+      }
+
+      try {
+        updateFirebaseStatus('syncing', '🔄 Firebase 데이터 삭제 중...');
+        
+        const firebaseAttendees = await window.firebaseManager.getAttendees();
+        let deleteCount = 0;
+        
+        for (const attendee of firebaseAttendees) {
+          await window.firebaseManager.deleteAttendee(attendee.id);
+          deleteCount++;
+        }
+        
+        updateFirebaseStatus('online', '✅ Firebase 초기화 완료');
+        alert(`✅ Firebase에서 ${deleteCount}개의 데이터가 삭제되었습니다.\n\n💾 localStorage 데이터는 유지됩니다.`);
+        
+        // Firebase 데이터가 삭제되면 localStorage 데이터로 화면 업데이트
+        loadAttendeesFromLocalStorage();
+        
+      } catch (error) {
+        console.error('Firebase 데이터 삭제 오류:', error);
+        updateFirebaseStatus('offline', '❌ 삭제 실패');
+        alert(`Firebase 삭제 중 오류 발생: ${error.message}`);
       }
     }
 
