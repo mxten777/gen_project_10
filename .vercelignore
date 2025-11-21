@@ -1,0 +1,15 @@
+# Vercel 배포 무시 파일
+.env.local
+.env
+*.log
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 개발 전용 파일
+debug.html
+test/
+
+# 백업 파일
+*.backup
+*.bak

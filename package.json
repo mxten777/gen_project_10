@@ -1,12 +1,25 @@
 {
   "name": "osan-71-year-end-party",
-  "version": "1.0.0", 
-  "description": "오산고 71회 동기 송년회 웹사이트",
+  "version": "2.1.0", 
+  "description": "오산고 71회 동기 송년회 초대장 시스템 - Firebase 연동",
   "scripts": {
     "start": "python -m http.server 8000 --directory public --bind 0.0.0.0",
-    "dev": "python -m http.server 8000 --directory public --bind 0.0.0.0"
+    "dev": "python -m http.server 8000 --directory public --bind 0.0.0.0",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "vercel --prod", 
+    "preview": "vercel",
+    "test": "echo 'Firebase 연동 테스트 - debug.html 사용'",
+    "clean": "rm -rf .vercel",
+    "logs": "vercel logs"
   },
-  "keywords": ["osan", "party", "invitation", "checkin"],
+  "keywords": ["osan", "party", "invitation", "checkin", "firebase", "qr-code", "reunion"],
   "author": "오산고 71회",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mxten777/gen_project_10"
+  }
 }
