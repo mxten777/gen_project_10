@@ -43,10 +43,6 @@
       "destination": "/invitation_clean.html"
     },
     {
-      "source": "/simple", 
-      "destination": "/invitation_simple.html"
-    },
-    {
       "source": "/checkin",
       "destination": "/checkin.html"
     },
