@@ -12,14 +12,15 @@
             background: linear-gradient(135deg, #3b4b87 0%, #6366f1 50%, #8b5cf6 100%);
             min-height: 100vh;
             margin: 0;
-            padding: 12px;
+            padding: 16px 12px;
         }
         .invitation-card {
             background: #ffffff;
             border-radius: 16px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-            max-height: calc(100vh - 24px);
-            overflow: hidden;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .header-gradient {
             background: linear-gradient(135deg, #6b46c1 0%, #059669 100%);
@@ -37,6 +38,13 @@
     </style>
 </head>
 <body class="flex items-center justify-center">
+    <!-- ホームボタン -->
+    <div class="fixed top-2 left-2 z-50">
+        <a href="/" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-semibold transition-colors shadow-lg">
+            🏠 ホーム
+        </a>
+    </div>
+    
     <div class="invitation-card max-w-xs w-full">
         <!-- ヘッダー -->
         <div class="header-gradient text-white p-3">
