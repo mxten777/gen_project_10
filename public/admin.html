@@ -278,9 +278,9 @@
             </button>
             <button
               onclick="forceDeleteAll()"
-              class="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-lg transition-colors border border-red-500"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
-              ⚠️ 강제 완전 삭제 (복구 불가)
+              🧹 정상적인 완전 삭제 (권장)
             </button>
             <button
               onclick="clearCache()"
@@ -994,114 +994,60 @@
       }
     }
 
-    // 강제 완전 삭제 (복구 불가)
+    // 정상적인 완전 삭제 (권장)
     async function forceDeleteAll() {
-      const extremeConfirm = confirm(`💀 극단적 삭제 모드 💀
-
-이 기능은 다음을 실행합니다:
-• Firebase 모든 데이터 강제 삭제
-• 모든 로컬 저장소 완전 삭제  
-• 실시간 연결 완전 차단
-• 자동 복구 영구 차단
-• 페이지 강제 새로고침
-
-⚠️ 이 작업은 절대 되돌릴 수 없습니다!
-⚠️ 데이터가 계속 살아나는 문제 해결용입니다!
-
-극단적 삭제를 실행하시겠습니까?`);
+      if (!confirm('🧹 정상적인 완전 삭제\n\n모든 데이터를 깔끔하게 삭제합니다.\n계속하시겠습니까?')) {
+        return;
+      }
       
-      if (!extremeConfirm) return;
+      const confirmCode = Math.floor(100 + Math.random() * 900);
+      const userCode = prompt(`확인 코드: ${confirmCode}\n\n입력:`);
       
-      // 안전 코드 (더 복잡)
-      const extremeCode = Math.floor(10000 + Math.random() * 90000); // 5자리
-      const userExtremeCode = prompt(`🔒 극단적 삭제 확인
-
-다음 5자리 숫자를 정확히 입력하세요:
-${extremeCode}
-
-입력:`);
-      
-      if (userExtremeCode !== String(extremeCode)) {
-        alert('❌ 코드가 일치하지 않습니다. 극단적 삭제가 취소되었습니다.');
+      if (userCode !== String(confirmCode)) {
+        alert('❌ 코드 불일치. 취소되었습니다.');
         return;
       }
       
       try {
-        updateFirebaseStatus('syncing', '💀 극단적 삭제 실행 중...');
+        updateFirebaseStatus('syncing', '🧹 정상 삭제 중...');
         
-        // 1. 실시간 리스너 완전 차단
+        // 1. 리스너 정리
         if (firebaseUnsubscribe) {
           firebaseUnsubscribe();
           firebaseUnsubscribe = null;
         }
         
-        // 2. Firebase 극한 삭제 (여러 번 시도)
+        // 2. Firebase 배치 삭제 (정상적인 방법)
         if (window.firebaseManager) {
-          for (let attempt = 1; attempt <= 5; attempt++) {
-            console.log(`🔥 Firebase 삭제 시도 ${attempt}/5`);
-            
-            const data = await window.firebaseManager.getAttendees();
-            console.log(`발견된 데이터: ${data.length}개`);
-            
-            for (const item of data) {
-              try {
-                await window.firebaseManager.deleteAttendee(item.id);
-                console.log(`💀 삭제: ${item.name}`);
-              } catch (e) {
-                console.error(`삭제 실패: ${item.name}`, e);
-              }
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            const remaining = await window.firebaseManager.getAttendees();
-            if (remaining.length === 0) {
-              console.log('✅ Firebase 완전 정리됨');
-              break;
-            } else {
-              console.warn(`⚠️ ${remaining.length}개 데이터 잔존, 재시도...`);
-            }
-          }
+          const allData = await window.firebaseManager.getAttendees();
+          console.log(`📋 ${allData.length}개 데이터 삭제 시작`);
+          
+          // 배치 삭제 (Firebase 권장 방법)
+          const deletePromises = allData.map(item => 
+            window.firebaseManager.deleteAttendee(item.id)
+          );
+          
+          await Promise.all(deletePromises);
+          console.log('✅ Firebase 배치 삭제 완료');
         }
         
-        // 3. 로컬 저장소 완전 파괴
+        // 3. 로컬 정리
         attendees = [];
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // 4. 극단적 차단 플래그
-        localStorage.setItem('EXTREME_DELETE_MODE', 'true');
+        localStorage.removeItem('attendees');
+        localStorage.removeItem('attendees_backup');
         localStorage.setItem('firebase_migrated', 'true');
-        localStorage.setItem('prevent_auto_restore', 'true');
-        localStorage.setItem('data_cleared_at', new Date().toISOString());
-        localStorage.setItem('force_deleted', 'true');
         
-        // 5. 모든 캐시 삭제
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          for (const cacheName of cacheNames) {
-            await caches.delete(cacheName);
-          }
-        }
+        // 4. UI 업데이트
+        renderAttendees();
+        updateStats();
+        updateFirebaseStatus('online', '✅ 정상 삭제 완료');
         
-        // 6. 서비스 워커 제거
-        if ('serviceWorker' in navigator) {
-          const registrations = await navigator.serviceWorker.getRegistrations();
-          for (const registration of registrations) {
-            await registration.unregister();
-          }
-        }
-        
-        updateFirebaseStatus('offline', '💀 극단적 삭제 완료');
-        
-        alert('💀 극단적 삭제가 완료되었습니다!\\n\\n🔒 모든 자동 복구가 차단되었습니다.\\n📱 페이지가 강제로 새로고침됩니다.');
-        
-        // 7. 강제 새로고침 (캐시 무시)
-        window.location.href = window.location.href + '?force_refresh=' + Date.now();
+        alert('✅ 모든 데이터가 정상적으로 삭제되었습니다.');
         
       } catch (error) {
-        console.error('극단적 삭제 오류:', error);
-        alert(`극단적 삭제 중 오류: ${error.message}`);
+        console.error('삭제 오류:', error);
+        updateFirebaseStatus('offline', '❌ 삭제 실패');
+        alert(`삭제 중 오류: ${error.message}`);
       }
     }
 
