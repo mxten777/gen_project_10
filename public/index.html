@@ -8,24 +8,75 @@
     <meta http-equiv="Expires" content="0">
     <meta name="version" content="v2.1.0">
     <title>오산고 71회 동기 송년회</title>
-    <script>
-        // 메인 초대장 페이지로 자동 리디렉션 (깔끔한 URL)
-        window.location.href = '/invitation';
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #1e3a8a, #312e81); color: white; font-family: system-ui;">
-        <div style="text-align: center;">
-            <h1 style="font-size: 2rem; margin-bottom: 1rem;">오산고 71회 동기 송년회</h1>
-            <p style="margin-bottom: 2rem;">초대장 페이지로 이동 중...</p>
-            <div style="border: 2px solid white; border-radius: 50%; width: 40px; height: 40px; border-top-color: transparent; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 min-h-screen flex items-center justify-center">
+    <div class="text-center px-4">
+        <!-- 메인 타이틀 -->
+        <div class="mb-8">
+            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4">
+                🎉 오산고 71회 동기
+            </h1>
+            <h2 class="text-3xl sm:text-4xl font-bold text-yellow-300 mb-2">
+                송년회
+            </h2>
+            <p class="text-blue-200 text-lg">
+                2024년 12월 초대장 & 참석자 관리
+            </p>
+        </div>
+
+        <!-- 내비게이션 버튼들 -->
+        <div class="space-y-4 max-w-md mx-auto">
+            <!-- 초대장 보기 (주요 기능) -->
+            <a href="/invitation" 
+               class="block w-full bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                💌 초대장 보기
+                <div class="text-sm opacity-90 mt-1">대중 사용자용</div>
+            </a>
+
+            <!-- 참석자 체크인 -->
+            <a href="/checkin" 
+               class="block w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                ✅ 참석자 체크인
+                <div class="text-sm opacity-90 mt-1">당일 현장 사용</div>
+            </a>
+
+            <!-- 관리자 페이지 -->
+            <a href="/admin_simple" 
+               class="block w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all duration-200">
+                🔧 관리자 페이지
+                <div class="text-sm opacity-90 mt-1">참석자 관리 및 통계</div>
+            </a>
+        </div>
+
+        <!-- 추가 옵션들 -->
+        <div class="mt-6 space-y-2 max-w-md mx-auto">
+            <div class="text-blue-300 text-sm font-semibold mb-2">📸 추가 기능</div>
+            
+            <div class="flex gap-2">
+                <a href="/screenshot" 
+                   class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors">
+                    📱 스크린샷 (한국어)
+                </a>
+                <a href="/screenshot-jp" 
+                   class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg text-sm transition-colors">
+                    📱 スクリーンショット
+                </a>
+            </div>
+            
+            <a href="/debug" 
+               class="block w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2 px-4 rounded-lg text-sm transition-colors text-center">
+                🔧 시스템 디버그
+            </a>
+        </div>
+
+        <!-- 추가 정보 -->
+        <div class="mt-8 text-blue-200 text-sm">
+            <p>📅 일시: 2024년 12월 예정</p>
+            <p>🎆 오산고등학교 71회 동기들을 위한 따뜻한 자리</p>
         </div>
     </div>
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+</body>
 </body>
 </html>

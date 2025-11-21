@@ -51,6 +51,10 @@
       "destination": "/admin.html"
     },
     {
+      "source": "/admin_simple",
+      "destination": "/admin_simple.html"
+    },
+    {
       "source": "/debug",
       "destination": "/debug.html"
     },
