@@ -62,6 +62,14 @@
     {
       "source": "/debug",
       "destination": "/debug.html"
+    },
+    {
+      "source": "/screenshot",
+      "destination": "/screenshot.html"
+    },
+    {
+      "source": "/screenshot-jp",
+      "destination": "/screenshot-jp.html"
     }
   ]
 }

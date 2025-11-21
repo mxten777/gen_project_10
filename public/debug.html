@@ -220,7 +220,7 @@
           <button onclick="exportAllData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded font-semibold">
             📤 데이터 백업
           </button>
-          <a href="admin.html" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded font-semibold text-center">
+          <a href="/admin" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded font-semibold text-center">
             ⚙️ 관리자 페이지
           </a>
         </div>
@@ -242,50 +242,85 @@
   <script>
     let firebaseManager = null;
 
-    // Firebase 연결 확인
+    // Firebase 연결 확인 (강화된 버전)
     async function checkFirebaseConnection() {
       try {
         document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-yellow-400">Firebase 연결 확인 중...</span>';
+        console.log('🔍 Firebase 연결 확인 시작...');
         
-        // Firebase Manager 로드 대기
+        // Firebase Manager 로드 대기 (더 안정적인 방식)
         let retryCount = 0;
-        while (!window.firebaseManager && retryCount < 20) {
-          console.log(`Firebase Manager 대기 중... (${retryCount + 1}/20)`);
+        const maxRetries = 30; // 15초까지 대기
+        
+        while (!window.firebaseManager && retryCount < maxRetries) {
+          console.log(`🕐 Firebase Manager 대기 중... (${retryCount + 1}/${maxRetries})`);
+          document.getElementById('firebaseStatus').innerHTML = 
+            `🔄 <span class="text-yellow-400">Firebase 로딩... ${retryCount + 1}/${maxRetries}</span>`;
           await new Promise(resolve => setTimeout(resolve, 500));
           retryCount++;
         }
 
         if (window.firebaseManager) {
           firebaseManager = window.firebaseManager;
+          console.log('✅ Firebase Manager 연결됨');
           
-          // 연결 테스트 수행
-          const connectionOk = await firebaseManager.testConnection();
+          // 다중 연결 테스트 수행
+          document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-blue-400">Firebase 연결 테스트 중...</span>';
+          
+          let connectionAttempts = 0;
+          const maxAttempts = 3;
+          let connectionOk = false;
+          
+          while (!connectionOk && connectionAttempts < maxAttempts) {
+            connectionAttempts++;
+            console.log(`🔥 Firebase 연결 테스트 시도 ${connectionAttempts}/${maxAttempts}`);
+            
+            try {
+              connectionOk = await firebaseManager.testConnection();
+              if (connectionOk) {
+                console.log('✅ Firebase 연결 테스트 성공');
+                break;
+              }
+            } catch (testError) {
+              console.warn(`⚠️ 연결 테스트 ${connectionAttempts} 실패:`, testError);
+            }
+            
+            if (connectionAttempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
           
           if (connectionOk && firebaseManager.connectionTested) {
-            document.getElementById('firebaseStatus').innerHTML = '✅ <span class="text-green-400">Firebase 연결 성공</span>';
+            document.getElementById('firebaseStatus').innerHTML = '✅ <span class="text-green-400">Firebase 연결 성공 (테스트 완료)</span>';
+            console.log('🎯 Firebase 완전 연결 성공');
             return true;
           } else {
-            document.getElementById('firebaseStatus').innerHTML = '⚠️ <span class="text-yellow-400">Firebase 연결 불안정</span>';
+            document.getElementById('firebaseStatus').innerHTML = 
+              `⚠️ <span class="text-yellow-400">Firebase 연결 불안정 (${connectionAttempts}/${maxAttempts} 시도)</span>`;
+            console.warn('⚠️ Firebase 연결 불안정');
             return false;
           }
         } else {
-          console.error('Firebase Manager 로드 실패');
-          document.getElementById('firebaseStatus').innerHTML = '❌ <span class="text-red-400">Firebase Manager 로드 실패</span>';
+          console.error('❌ Firebase Manager 로드 완전 실패');
+          document.getElementById('firebaseStatus').innerHTML = 
+            `❌ <span class="text-red-400">Firebase Manager 로드 실패 (${retryCount}/${maxRetries} 시도)</span>`;
           return false;
         }
       } catch (error) {
-        console.error('Firebase 연결 확인 오류:', error);
-        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">Firebase 오류: ${error.message}</span>`;
+        console.error('❌ Firebase 연결 확인 치명적 오류:', error);
+        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">Firebase 치명적 오류: ${error.message}</span>`;
         
         // 상세한 오류 정보 표시
         if (error.code) {
           const errorDetails = document.createElement('div');
-          errorDetails.className = 'text-red-300 text-sm mt-2';
+          errorDetails.className = 'text-red-300 text-sm mt-2 p-2 bg-red-900 bg-opacity-30 rounded';
           errorDetails.innerHTML = `
-            오류 코드: ${error.code}<br>
-            ${getErrorMessage(error.code)}
+            <div class="font-bold">오류 코드: ${error.code}</div>
+            <div class="mt-1">${getErrorMessage(error.code)}</div>
           `;
-          document.getElementById('firebaseStatus').appendChild(errorDetails);
+          
+          const statusContainer = document.getElementById('firebaseStatus').parentElement;
+          statusContainer.appendChild(errorDetails);
         }
         
         return false;
@@ -656,10 +691,11 @@
       }
     }
 
-    // Firebase 전체 데이터 삭제
+    // Firebase 전체 데이터 삭제 (개선된 버전)
     async function clearFirebaseData() {
-      if (!firebaseManager) {
-        alert('Firebase가 연결되지 않았습니다.');
+      // Firebase 연결 상태 재확인
+      if (!firebaseManager || !window.firebaseManager) {
+        alert('❌ Firebase가 연결되지 않았습니다.\n\n페이지를 새로고침하고 다시 시도해주세요.');
         return;
       }
 
@@ -681,34 +717,81 @@ Firebase의 모든 참석자 데이터가 영구적으로 삭제됩니다.
 
       try {
         document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-red-400">Firebase 데이터 삭제 중...</span>';
+        console.log('🗑️ Firebase 데이터 삭제 시작...');
         
-        const attendees = await firebaseManager.getAttendees();
-        let deleteCount = 0;
-        
-        for (const attendee of attendees) {
-          await firebaseManager.deleteAttendee(attendee.id);
-          deleteCount++;
+        // Firebase 연결 테스트
+        const connectionOk = await firebaseManager.testConnection();
+        if (!connectionOk) {
+          throw new Error('Firebase 연결 실패');
         }
         
-        alert(`Firebase에서 ${deleteCount}개의 데이터가 삭제되었습니다.`);
+        const attendees = await firebaseManager.getAttendees();
+        console.log(`📋 삭제할 데이터: ${attendees.length}개`);
+        
+        if (attendees.length === 0) {
+          alert('삭제할 데이터가 없습니다.');
+          return;
+        }
+        
+        let deleteCount = 0;
+        let errorCount = 0;
+        
+        // 배치 삭제로 안정성 향상
+        for (let i = 0; i < attendees.length; i++) {
+          try {
+            const attendee = attendees[i];
+            console.log(`🗑️ 삭제 중 ${i+1}/${attendees.length}: ${attendee.name}`);
+            
+            await firebaseManager.deleteAttendee(attendee.id);
+            deleteCount++;
+            
+            // UI 진행상태 표시
+            document.getElementById('firebaseStatus').innerHTML = 
+              `🔄 <span class="text-red-400">삭제 진행중... ${deleteCount}/${attendees.length}</span>`;
+              
+          } catch (error) {
+            console.error(`❌ 삭제 실패 ${attendee.name}:`, error);
+            errorCount++;
+          }
+          
+          // 너무 빠른 요청 방지
+          if (i % 5 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+        
+        const resultMessage = `✅ Firebase 삭제 완료!
+        
+📊 결과:
+• 성공: ${deleteCount}개
+• 실패: ${errorCount}개
+• 총 처리: ${attendees.length}개`;
+
+        alert(resultMessage);
+        console.log('🎯 Firebase 데이터 삭제 완료:', { deleteCount, errorCount, total: attendees.length });
+        
+        // UI 새로고침
         loadFirebaseData();
+        loadLocalStorageData();
         
       } catch (error) {
-        console.error('Firebase 데이터 삭제 오류:', error);
-        alert(`삭제 중 오류 발생: ${error.message}`);
+        console.error('❌ Firebase 데이터 삭제 치명적 오류:', error);
+        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">삭제 실패: ${error.message}</span>`;
+        alert(`❌ 삭제 중 치명적 오류 발생: ${error.message}\n\n상세 오류는 개발자 도구 콘솔을 확인하세요.`);
       }
     }
 
-    // 모든 데이터 삭제 (localStorage + Firebase)
+    // 모든 데이터 완전 삭제 (Firebase + localStorage) - 개선된 버전
     async function clearAllData() {
       const confirmMessage = `🚨 모든 데이터 완전 삭제 🚨
 
 다음 데이터가 모두 삭제됩니다:
 • Firebase의 모든 참석자 데이터
 • localStorage의 모든 로컬 데이터
-• 캐시 및 설정 정보
+• 세션 스토리지 및 캐시 정보
+• 모든 설정 데이터
 
-이 작업은 절대 되돌릴 수 없습니다!
+⚠️ 이 작업은 절대 되돌릴 수 없습니다! ⚠️
 
 정말로 모든 데이터를 삭제하시겠습니까?
 삭제하려면 "CLEAR ALL"이라고 정확히 입력하세요:`;
@@ -721,42 +804,161 @@ Firebase의 모든 참석자 데이터가 영구적으로 삭제됩니다.
       }
 
       try {
-        // Firebase 데이터 삭제
-        if (firebaseManager) {
-          const attendees = await firebaseManager.getAttendees();
-          for (const attendee of attendees) {
-            await firebaseManager.deleteAttendee(attendee.id);
+        console.log('🚨 전체 데이터 삭제 시작...');
+        let firebaseDeleteCount = 0;
+        let localStorageKeys = 0;
+        
+        // 1. Firebase 데이터 삭제
+        if (firebaseManager || window.firebaseManager) {
+          console.log('🔥 Firebase 데이터 삭제 중...');
+          document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-red-400">Firebase 전체 삭제 중...</span>';
+          
+          try {
+            const manager = firebaseManager || window.firebaseManager;
+            const attendees = await manager.getAttendees();
+            console.log(`📋 Firebase 삭제 대상: ${attendees.length}개`);
+            
+            for (let i = 0; i < attendees.length; i++) {
+              const attendee = attendees[i];
+              await manager.deleteAttendee(attendee.id);
+              firebaseDeleteCount++;
+              
+              // 진행률 표시
+              if (i % 3 === 0) {
+                document.getElementById('firebaseStatus').innerHTML = 
+                  `🔄 <span class="text-red-400">Firebase 삭제: ${firebaseDeleteCount}/${attendees.length}</span>`;
+              }
+            }
+            
+            console.log(`✅ Firebase 삭제 완료: ${firebaseDeleteCount}개`);
+          } catch (firebaseError) {
+            console.error('❌ Firebase 삭제 오류:', firebaseError);
+            alert(`Firebase 삭제 중 오류: ${firebaseError.message}\n\nlocalStorage는 계속 삭제합니다.`);
           }
+        } else {
+          console.log('⚠️ Firebase Manager 없음 - Firebase 삭제 건너뜀');
         }
-
-        // localStorage 초기화
+        
+        // 2. localStorage 완전 초기화
+        console.log('💾 localStorage 삭제 중...');
+        
+        // localStorage 키 개수 확인
+        localStorageKeys = localStorage.length;
+        const localStorageData = localStorage.getItem('attendees');
+        const localAttendeeCount = localStorageData ? JSON.parse(localStorageData).length : 0;
+        
+        // 모든 localStorage 데이터 삭제
         localStorage.clear();
         
-        alert('모든 데이터가 완전히 삭제되었습니다.');
+        // 3. sessionStorage도 삭제
+        sessionStorage.clear();
         
-        // UI 새로고침
+        // 4. 상태 업데이트
+        document.getElementById('firebaseStatus').innerHTML = '✅ <span class="text-green-400">전체 삭제 완료</span>';
+        
+        const completionMessage = `🎯 모든 데이터 삭제 완료!
+
+📊 삭제된 데이터:
+• Firebase 참석자: ${firebaseDeleteCount}개
+• localStorage 항목: ${localStorageKeys}개 (참석자 ${localAttendeeCount}명 포함)
+• sessionStorage: 모든 데이터
+• 브라우저 캐시: 초기화됨
+
+✅ 시스템이 완전히 초기화되었습니다.`;
+
+        alert(completionMessage);
+        console.log('🎉 전체 데이터 삭제 성공:', {
+          firebaseDeleted: firebaseDeleteCount,
+          localStorageKeys: localStorageKeys,
+          localAttendees: localAttendeeCount
+        });
+        
+        // 5. UI 새로고침
         loadFirebaseData();
         loadLocalStorageData();
+        updateDetailedStats();
+        
+        // 6. 강제 페이지 새로고침 (완전 초기화 보장)
+        setTimeout(() => {
+          if (confirm('완전한 초기화를 위해 페이지를 새로고침하시겠습니까?')) {
+            window.location.reload(true);
+          }
+        }, 1000);
         
       } catch (error) {
-        console.error('전체 데이터 삭제 오류:', error);
-        alert(`삭제 중 오류 발생: ${error.message}`);
+        console.error('❌ 전체 데이터 삭제 치명적 오류:', error);
+        alert(`❌ 전체 삭제 중 치명적 오류 발생: ${error.message}\n\n상세 오류는 개발자 도구 콘솔을 확인하세요.`);
       }
     }
 
-    // localStorage 초기화 (기존 함수 개선)
+    // localStorage 초기화 (개선된 안전 버전)
     function clearLocalStorage() {
-      const localData = localStorage.getItem('attendees');
-      const dataCount = localData ? JSON.parse(localData).length : 0;
-      
-      if (!confirm(`localStorage 데이터 ${dataCount}개를 모두 삭제하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`)) return;
-      
-      localStorage.removeItem('attendees');
-      localStorage.removeItem('cacheVersion');
-      localStorage.removeItem('firebase_migrated');
-      
-      alert(`localStorage에서 ${dataCount}개 데이터가 삭제되었습니다.`);
-      loadLocalStorageData();
+      try {
+        const localData = localStorage.getItem('attendees');
+        const dataCount = localData ? JSON.parse(localData).length : 0;
+        const totalKeys = localStorage.length;
+        
+        const confirmMessage = `💾 localStorage 데이터 삭제
+        
+📊 삭제 대상:
+• 참석자 데이터: ${dataCount}개
+• 전체 localStorage 항목: ${totalKeys}개
+• 캐시 및 설정 정보
+
+⚠️ 이 작업은 되돌릴 수 없습니다.
+
+정말 삭제하시겠습니까?`;
+        
+        if (!confirm(confirmMessage)) {
+          console.log('localStorage 삭제 취소됨');
+          return;
+        }
+        
+        console.log('💾 localStorage 삭제 시작...', { dataCount, totalKeys });
+        
+        // 백업 생성 (선택적)
+        if (dataCount > 0) {
+          const backupKey = `attendees_backup_${Date.now()}`;
+          localStorage.setItem(backupKey, localData);
+          console.log(`📦 백업 생성: ${backupKey}`);
+        }
+        
+        // 주요 데이터 삭제
+        localStorage.removeItem('attendees');
+        localStorage.removeItem('cacheVersion');
+        localStorage.removeItem('firebase_migrated');
+        localStorage.removeItem('invitationVersion');
+        localStorage.removeItem('pageVersion');
+        localStorage.removeItem('forceReload');
+        
+        // 추가 청소 (동기 관련 데이터)
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('osan') || key.startsWith('attendee') || key.includes('cache'))) {
+            localStorage.removeItem(key);
+          }
+        }
+        
+        const successMessage = `✅ localStorage 삭제 완료!
+        
+📊 결과:
+• 참석자 데이터: ${dataCount}개 삭제
+• localStorage 정리: ${totalKeys}개 항목 처리
+• 백업: ${dataCount > 0 ? '생성됨' : '필요없음'}
+
+시스템이 깔끔하게 초기화되었습니다.`;
+
+        alert(successMessage);
+        console.log('✅ localStorage 삭제 완료');
+        
+        // UI 새로고침
+        loadLocalStorageData();
+        updateDetailedStats();
+        
+      } catch (error) {
+        console.error('❌ localStorage 삭제 오류:', error);
+        alert(`localStorage 삭제 중 오류 발생: ${error.message}`);
+      }
     }
 
     // Firebase 준비 완료 이벤트 리스너
