@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="version" content="v2.2.0">
+    <title>오산고등학교 71회 동기 송년회 초대장</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎉</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .invitation-card {
+            background: linear-gradient(145deg, #4c63d2, #5a67d8);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+        }
+        .event-detail {
+            background: linear-gradient(145deg, #2d3748, #4a5568);
+        }
+        .program-item {
+            transition: all 0.3s ease;
+        }
+        .program-item:hover {
+            transform: translateX(5px);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4">
+    <!-- 네비게이션 -->
+    <nav class="fixed top-0 left-0 right-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 p-3">
+        <div class="flex justify-between items-center max-w-md mx-auto">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span class="text-white text-sm font-bold">71</span>
+                </div>
+                <span class="text-white font-bold text-sm">오산고 71회 송년회</span>
+            </div>
+            <div class="flex gap-2">
+                <button id="captureToggle" 
+                        onclick="captureMode()" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors"
+                        title="캡처 모드로 전환">📱</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-md mx-auto pt-16">
+        <!-- 메인 초대장 -->
+        <div class="invitation-card rounded-2xl p-6 mb-6 text-white text-center relative overflow-hidden">
+            <!-- 배경 장식 -->
+            <div class="absolute top-0 right-0 w-24 h-24 bg-yellow-400 rounded-full opacity-20 -mr-12 -mt-12"></div>
+            <div class="absolute bottom-0 left-0 w-16 h-16 bg-pink-400 rounded-full opacity-20 -ml-8 -mb-8"></div>
+            
+            <div class="relative z-10">
+                <!-- 로고 -->
+                <div class="mb-4">
+                    <img src="images/osan_log3.svg" alt="오산고등학교 로고" class="w-16 h-16 mx-auto">
+                </div>
+                
+                <!-- 제목 -->
+                <h1 class="text-2xl font-bold mb-2 text-blue-100">오산고 71회</h1>
+                <h2 class="text-xl font-semibold mb-4 text-purple-200">동기 송년회</h2>
+                
+                <!-- 인사말 -->
+                <p class="text-sm text-blue-100 mb-1">오랜 벗님 더 좋은 우리,</p>
+                <p class="text-sm text-blue-100 mb-6">2025년의 끝자락을 함께 마무리해요.</p>
+            </div>
+        </div>
+
+        <!-- 행사 안내 -->
+        <section class="event-detail rounded-xl p-4 mb-4 text-white">
+            <h3 class="text-lg font-bold mb-3 text-blue-300 flex items-center gap-2">
+                📅 행사 안내
+            </h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex items-center gap-3">
+                    <span class="text-blue-400 font-medium w-8">일시:</span>
+                    <span>2025년 11월 29일(토) 14:00</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-blue-400 font-medium w-8">장소:</span>
+                    <span>서울대입구역 <span class="text-yellow-300 font-semibold">꼬꼬닭갈비</span></span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-blue-400 font-medium w-8">인원:</span>
+                    <span>약 54명 예정</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 진행 프로그램 -->
+        <section class="event-detail rounded-xl p-4 mb-4 text-white">
+            <h3 class="text-lg font-bold mb-3 text-yellow-300 flex items-center gap-2">
+                🎊 진행 프로그램
+            </h3>
+            <div class="space-y-1 text-sm">
+                <div class="program-item p-2 rounded">• 입장 & 출석체크 / 개회 인사</div>
+                <div class="program-item p-2 rounded">• 소모임 소개 & 대표 인사말</div>
+                <div class="program-item p-2 rounded">• 건배사 후 식사 & 자유 대화</div>
+                <div class="program-item p-2 rounded">• 단체사진 촬영 및 폐회</div>
+            </div>
+        </section>
+
+        <!-- QR 체크인 -->
+        <div class="bg-gradient-to-br from-blue-800 via-slate-800 to-slate-900 rounded-xl p-3 mb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-18 h-18 bg-white rounded-lg flex items-center justify-center p-1 relative">
+                    <canvas id="qrcode" class="w-full h-full" style="display: none;"></canvas>
+                    <img id="qrcode-fallback" class="w-full h-full object-contain rounded bg-gray-100" style="display: block;" alt="">
+                </div>
+                <div class="text-slate-200">
+                    <div class="font-bold text-sm text-blue-200 mb-1">QR 찍고 미리 체크인</div>
+                    <div class="text-xs leading-relaxed">
+                        휴대폰 카메라로 QR을 비추면<br>
+                        행사 안내와 출석 체크를<br>
+                        한 번에 할 수 있습니다
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 특별 안내 -->
+        <div class="bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl p-4 mb-4 text-white text-center">
+            <div class="flex items-center justify-center gap-2 mb-2">
+                <span class="text-xl">⭐</span>
+                <span class="font-bold text-sm">"오래 보니 좋고, 앞으로 더 좋아질 우리"</span>
+                <span class="text-xl">⭐</span>
+            </div>
+            <div class="text-xs opacity-90">
+                11월 29일, 서울대입구역 꼬꼬닭갈비에서 만나요!
+            </div>
+        </div>
+
+        <!-- 버튼들 -->
+        <div class="text-center">
+            <div class="flex gap-3 mb-6">
+                <button onclick="window.location.href='checkin.html'" 
+                        class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg">
+                    📝 체크인
+                </button>
+                <button onclick="window.location.href='admin.html'" 
+                        class="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition-all duration-200 shadow-lg">
+                    📊 관리용
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎉 오산고 71회 송년회 초대장 로드됨');
+
+            // 캐시 버전 체크
+            function checkCacheVersion() {
+                const currentVersion = 'v2.2.0';
+                const storedVersion = localStorage.getItem('invitationVersion');
+                
+                if (storedVersion !== currentVersion) {
+                    console.log('새 버전 감지, 캐시 업데이트:', currentVersion);
+                    localStorage.setItem('invitationVersion', currentVersion);
+                    
+                    // 캐시 무효화를 위한 리로드 (한 번만)
+                    if (!sessionStorage.getItem('versionUpdated')) {
+                        sessionStorage.setItem('versionUpdated', 'true');
+                        setTimeout(() => {
+                            window.location.reload(true);
+                        }, 100);
+                        return;
+                    }
+                }
+            }
+            
+            // 주기적 캐시 체크
+            setInterval(checkCacheVersion, 3000);
+            
+            // QR 코드 생성
+            const canvas = document.getElementById('qrcode');
+            const fallbackImg = document.getElementById('qrcode-fallback');
+            
+            if (!canvas || !fallbackImg) {
+                console.error('QR코드 요소를 찾을 수 없습니다.');
+                return;
+            }
+
+            // 체크인 URL 생성 (모바일 접근 가능)
+            let checkinUrl;
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                // 로컬 서버인 경우 - 사용자가 직접 IP를 확인할 수 있도록 안내
+                const currentUrl = window.location.href;
+                checkinUrl = currentUrl.replace('invitation.html', 'checkin.html');
+                
+                // 콘솔과 화면에 모바일 접근 방법 안내
+                console.log('📱 모바일에서 QR코드 스캔이 안 될 경우:');
+                console.log('1. 컴퓨터 IP 주소 확인: ipconfig (Windows) 또는 ifconfig (Mac/Linux)');
+                console.log('2. 모바일에서 http://[컴퓨터IP]:8080/checkin.html 직접 접속');
+                console.log('3. 예: http://192.168.1.100:8080/checkin.html');
+            } else {
+                // 배포된 서버인 경우 원래 방식 사용
+                checkinUrl = window.location.origin + window.location.pathname.replace('invitation.html', 'checkin.html');
+            }
+            console.log('QR코드 URL:', checkinUrl);
+            
+            // QR코드 생성 및 표시
+            generateQRCode(checkinUrl);
+
+            function generateQRCode(url) {
+                console.log('🔗 QR 코드 생성:', url);
+                
+                // 요소 다시 가져오기
+                const canvas = document.getElementById('qrcode');
+                const fallbackImg = document.getElementById('qrcode-fallback');
+                
+                if (!fallbackImg) {
+                    console.error('QR 이미지 요소를 찾을 수 없습니다.');
+                    return;
+                }
+                
+                const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=3&data=${encodeURIComponent(url)}`;
+                
+                // QR 이미지 즉시 설정 (로딩 없이)
+                fallbackImg.src = qrApiUrl;
+                fallbackImg.style.display = 'block';
+                if (canvas) canvas.style.display = 'none';
+                
+                // 에러 시 대체 처리
+                fallbackImg.onerror = function() {
+                    console.log('QR 서비스 실패, Google Charts 시도');
+                    const altUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(url)}`;
+                    fallbackImg.src = altUrl;
+                    
+                    // 두 번째도 실패하면 버튼으로 대체
+                    fallbackImg.onerror = function() {
+                        const container = fallbackImg.parentElement;
+                        container.innerHTML = `
+                            <div class="w-full h-full bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex flex-col items-center justify-center text-white cursor-pointer hover:from-green-600 hover:to-green-700 transition-all" 
+                                 onclick="window.location.href='checkin.html'">
+                                <div class="text-xl">📱</div>
+                                <div class="text-sm font-bold">체크인</div>
+                            </div>
+                        `;
+                    };
+                };
+                
+                // 클릭 이벤트
+                fallbackImg.onclick = function() {
+                    window.location.href = 'checkin.html';
+                };
+                fallbackImg.style.cursor = 'pointer';
+                fallbackImg.title = '클릭하여 체크인';
+            }
+        }); // DOMContentLoaded 이벤트 리스너 닫기
+
+        // 캡처 모드 - 안전하게 분리된 기능
+        function captureMode() {
+            try {
+                const nav = document.querySelector('nav');
+                const buttons = document.querySelector('.text-center .flex');
+                const toggleBtn = document.getElementById('captureToggle');
+            
+                if (!nav || !toggleBtn) {
+                    console.warn('캡처 모드: 일부 요소를 찾을 수 없습니다.');
+                    return;
+                }
+            
+                if (nav.style.display === 'none') {
+                    // 원래 상태로 복원
+                    nav.style.display = 'block';
+                    if (buttons) buttons.style.display = 'flex';
+                    toggleBtn.innerHTML = '📱';
+                    toggleBtn.title = '캡처 모드로 전환';
+                    
+                    // 토스트 메시지 표시
+                    showToast('✅ 일반 모드로 전환되었습니다', 'green');
+                } else {
+                    // 캡처 모드로 전환
+                    nav.style.display = 'none';
+                    if (buttons) buttons.style.display = 'none';
+                    toggleBtn.innerHTML = '🔄';
+                    toggleBtn.title = '일반 모드로 복원';
+                    
+                    // 토스트 메시지 표시
+                    showToast('📸 캡처 모드 활성화! 스크린샷을 찍으세요', 'purple');
+                }
+            } catch (error) {
+                console.error('캡처 모드 오류:', error);
+                showToast('❌ 캡처 모드 실행 중 오류가 발생했습니다', 'red');
+            }
+        }
+        
+        // 토스트 메시지 표시 함수
+        function showToast(message, color) {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-16 right-4 bg-${color}-500 text-white px-4 py-2 rounded-lg text-sm z-50 transition-all duration-300`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 300);
+            }, 2500);
+        }
+    </script>
+</body>
+</html>

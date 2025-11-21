@@ -9,11 +9,56 @@
   <meta name="version" content="v2.1.0">
   <title>운영진 관리 - 오산고 71회 동기 송년회</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase SDK & Config -->
+  <script type="module">
+    // Firebase 설정 파일 로드
+    import('./js/firebase-config.js')
+      .then(() => {
+        console.log('✅ Firebase 설정 로드 완료');
+        // Firebase Manager 사용 가능 알림
+        if (window.firebaseManager) {
+          console.log('🔥 Firebase Manager 준비됨');
+        }
+      })
+      .catch(error => {
+        console.error('❌ Firebase 설정 로드 실패:', error);
+      });
+  </script>
+  
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "Noto Sans KR", sans-serif; }
+    
+    /* Firebase 연결 상태 표시 */
+    .firebase-status {
+      position: fixed;
+      top: 70px;
+      right: 20px;
+      z-index: 40;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .status-online { background: #10b981; color: white; }
+    .status-offline { background: #f59e0b; color: white; }
+    .status-syncing { background: #3b82f6; color: white; animation: pulse 2s infinite; }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-blue-900 via-blue-700 to-slate-900 min-h-screen">
+  
+  <!-- Firebase 연결 상태 표시 -->
+  <div id="firebaseStatus" class="firebase-status status-syncing">
+    <span id="firebaseStatusText">🔄 Firebase 연결중...</span>
+  </div>
+  
   <!-- 네비게이션 바 -->
   <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
     <div class="max-w-7xl mx-auto px-2 sm:px-4">
@@ -24,25 +69,51 @@
         </div>
         
         <!-- 데스크톱 메뉴 -->
-        <div class="hidden md:flex space-x-2">
-          <a href="invitation.html" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+        <div class="hidden lg:flex space-x-2">
+          <!-- 핵심 기능 -->
+          <a href="invitation.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             🎊 초대장
           </a>
-          <a href="checkin.html" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+          <a href="checkin.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             📝 체크인
           </a>
-          <a href="admin.html" class="px-4 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
+          <a href="admin.html" class="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
             ⚙️ 관리
           </a>
-          <a href="screenshot.html" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+          
+          <!-- 관리자 도구 -->
+          <div class="border-l border-slate-600 pl-2 ml-2"></div>
+          <a href="debug.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors">
+            🔧 디버그
+          </a>
+          
+          <!-- 부가 기능 -->
+          <div class="border-l border-slate-600 pl-2 ml-2"></div>
+          <a href="screenshot.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             📸 스크린샷
           </a>
-          <a href="screenshot-jp.html" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+          <a href="screenshot-jp.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             🇯🇵 日本語
           </a>
-          <button onclick="toggleSchoolSong()" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+          <button onclick="toggleSchoolSong()" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
             🎵 교가
           </button>
+        </div>
+
+        <!-- 중간 크기 화면용 축약 메뉴 -->
+        <div class="hidden md:flex lg:hidden space-x-2">
+          <a href="invitation.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            🎊
+          </a>
+          <a href="checkin.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
+            📝
+          </a>
+          <a href="admin.html" class="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
+            ⚙️
+          </a>
+          <a href="debug.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors">
+            🔧
+          </a>
         </div>
         
         <!-- 햄버거 메뉴 버튼 -->
@@ -57,6 +128,11 @@
     <!-- 모바일 메뉴 (숨겨진 상태) -->
     <div id="mobile-menu" class="md:hidden bg-black bg-opacity-95 border-t border-slate-600 hidden">
       <div class="px-4 py-2 space-y-1">
+        
+        <!-- 핵심 기능 그룹 -->
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700">
+          핵심 기능
+        </div>
         <a href="invitation.html" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
           🎊 초대장
         </a>
@@ -64,17 +140,36 @@
           📝 체크인
         </a>
         <a href="admin.html" class="block px-4 py-3 rounded-lg text-sm font-semibold bg-purple-600 text-white text-center">
-          ⚙️ 관리
+          ⚙️ 관리자 (현재 페이지)
         </a>
+        
+        <!-- 관리자 도구 그룹 -->
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
+          관리자 도구
+        </div>
+        <a href="debug.html" class="block px-4 py-3 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors text-center">
+          🔧 디버그 & 분석
+        </a>
+        
+        <!-- 부가 기능 그룹 -->
+        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
+          부가 기능
+        </div>
         <a href="screenshot.html" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
           📸 스크린샷
         </a>
         <a href="screenshot-jp.html" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🇯🇵 日本語
+          🇯🇵 日本語 페이지
         </a>
         <button onclick="toggleSchoolSong()" class="block w-full px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🎵 교가
+          🎵 교가 듣기
         </button>
+        
+        <!-- 시스템 정보 -->
+        <div class="text-xs text-slate-500 text-center px-4 py-3 border-t border-slate-700 mt-4">
+          <div>오산고 71회 동기 송년회</div>
+          <div class="mt-1">관리자 시스템 v2.1.0</div>
+        </div>
       </div>
     </div>
   </nav>
@@ -83,10 +178,29 @@
   <div class="pt-16 px-2 sm:px-4 pb-4">
     <div class="max-w-6xl mx-auto">
       <!-- 헤더 -->
-      <header class="mb-4 sm:mb-6 md:mb-8 text-center">
-        <h1 class="text-xl sm:text-2xl md:text-4xl font-bold text-white mb-2">오산고 71회 동기 송년회</h1>
-        <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-blue-300 mb-4">운영진 대시보드</h2>
-        <div class="bg-blue-800 bg-opacity-50 rounded-lg p-4 inline-block">
+      <header class="mb-4 sm:mb-6 md:mb-8">
+        <div class="text-center mb-6">
+          <h1 class="text-xl sm:text-2xl md:text-4xl font-bold text-white mb-2">오산고 71회 동기 송년회</h1>
+          <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-blue-300 mb-4">운영진 대시보드</h2>
+        </div>
+        
+        <!-- 관리자 빠른 액션 버튼들 -->
+        <div class="mb-6 flex flex-wrap justify-center gap-2 sm:gap-4">
+          <a href="debug.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+            🔧 시스템 디버그
+          </a>
+          <button onclick="refreshAllData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+            🔄 데이터 새로고침
+          </button>
+          <button onclick="exportAttendees()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+            📤 명단 내보내기
+          </button>
+          <button onclick="showQuickStats()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
+            📊 빠른 통계
+          </button>
+        </div>
+        
+        <div class="bg-blue-800 bg-opacity-50 rounded-lg p-4 text-center">
           <p class="text-white text-lg">
             총 <span id="totalCount" class="font-bold text-yellow-300">0명</span> 중 
             <span id="checkedInCount" class="font-bold text-green-300">0명</span> 체크인 완료
@@ -299,18 +413,84 @@
 
   <script>
     let attendees = [];
+    let firebaseUnsubscribe = null; // 실시간 리스너 해제용
 
-    // 페이지 로드 시 로컬 스토리지에서 데이터 불러오기
-    function loadAttendees() {
+    // Firebase 상태 업데이트 함수
+    function updateFirebaseStatus(status, message) {
+      const statusElement = document.getElementById('firebaseStatus');
+      const statusText = document.getElementById('firebaseStatusText');
+      
+      if (statusElement && statusText) {
+        statusElement.className = `firebase-status status-${status}`;
+        statusText.textContent = message;
+      }
+    }
+
+    // Firebase에서 실시간 데이터 로드
+    async function loadAttendeesFromFirebase() {
+      if (!window.firebaseManager) {
+        console.warn('Firebase Manager가 없습니다. localStorage를 사용합니다.');
+        return loadAttendeesFromLocalStorage();
+      }
+
+      try {
+        updateFirebaseStatus('syncing', '🔄 데이터 로딩중...');
+        
+        // 실시간 리스너 설정
+        firebaseUnsubscribe = window.firebaseManager.onAttendeesUpdate((firebaseAttendees) => {
+          attendees = firebaseAttendees.map(a => ({
+            id: a.id,
+            name: a.name || '',
+            phone: a.phone || '',
+            checkedIn: a.checkedIn || false,
+            checkedInAt: a.checkedInAt || '',
+            timestamp: a.timestamp
+          }));
+          
+          sortAttendees();
+          updateStats();
+          updateFirebaseStatus('online', `✅ 실시간 연결 (${attendees.length}명)`);
+          console.log('🔥 Firebase 실시간 데이터 업데이트:', attendees.length);
+        });
+
+      } catch (error) {
+        console.error('Firebase 데이터 로드 오류:', error);
+        updateFirebaseStatus('offline', '❌ Firebase 오류');
+        loadAttendeesFromLocalStorage(); // 백업으로 localStorage 사용
+      }
+    }
+
+    // localStorage에서 데이터 로드 (백업용)
+    function loadAttendeesFromLocalStorage() {
       const saved = localStorage.getItem('attendees');
       if (saved) {
         attendees = JSON.parse(saved);
       } else {
-        // 깔끔한 초기 상태 - 샘플 데이터 없음
         attendees = [];
-        // 최초 접근 시에는 localStorage에 저장하지 않음 (사용자가 실제 데이터 입력 시에만 저장)
       }
-      sortAttendees(); // 초기 로드 시 이름순 정렬
+      sortAttendees();
+      updateFirebaseStatus('offline', `⚠️ 오프라인 (${attendees.length}명)`);
+    }
+
+    // 페이지 로드 시 데이터 불러오기
+    async function loadAttendees() {
+      // Firebase Manager가 로드될 때까지 대기
+      let retryCount = 0;
+      const maxRetries = 10;
+      
+      const waitForFirebase = () => {
+        if (window.firebaseManager) {
+          return loadAttendeesFromFirebase();
+        } else if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(() => waitForFirebase(), 500);
+        } else {
+          console.warn('Firebase 로드 시간 초과');
+          loadAttendeesFromLocalStorage();
+        }
+      };
+      
+      waitForFirebase();
     }
 
     function saveAttendees() {
@@ -319,44 +499,111 @@
       localStorage.setItem('cacheVersion', Date.now().toString());
     }
 
-    function addAttendee() {
+    async function addAttendee() {
       const name = document.getElementById('newName').value.trim();
       const phone = document.getElementById('newPhone').value.trim();
       
-      if (name) {
-        const newAttendee = {
-          id: Date.now().toString(),
-          name: name,
-          phone: phone || '',
-          checkedIn: false
-        };
-        attendees.push(newAttendee);
-        saveAttendees();
-        sortAttendees(); // 자동 정렬 적용
+      if (!name) {
+        alert('이름을 입력해주세요.');
+        return;
+      }
+
+      try {
+        if (window.firebaseManager) {
+          updateFirebaseStatus('syncing', '🔄 추가중...');
+          
+          const attendeeData = {
+            name: name,
+            phone: phone || '',
+            checkedIn: false,
+            checkedInAt: '',
+            timestamp: new Date()
+          };
+          
+          await window.firebaseManager.addAttendee(attendeeData);
+          updateFirebaseStatus('online', `✅ 추가완료 (${attendees.length + 1}명)`);
+          
+        } else {
+          // Firebase가 없을 경우 localStorage 사용
+          const newAttendee = {
+            id: Date.now().toString(),
+            name: name,
+            phone: phone || '',
+            checkedIn: false
+          };
+          attendees.push(newAttendee);
+          saveAttendees();
+          sortAttendees();
+        }
         
+        // 입력 필드 초기화
         document.getElementById('newName').value = '';
         document.getElementById('newPhone').value = '';
+        
+      } catch (error) {
+        console.error('참석자 추가 오류:', error);
+        updateFirebaseStatus('offline', '❌ 추가 실패');
+        alert('참석자 추가 중 오류가 발생했습니다.');
       }
     }
 
-    function removeAttendee(id) {
-      attendees = attendees.filter(a => a.id !== id);
-      saveAttendees();
-      sortAttendees(); // 삭제 후 정렬 유지
+    async function removeAttendee(id) {
+      if (!confirm('정말로 삭제하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        if (window.firebaseManager) {
+          updateFirebaseStatus('syncing', '🔄 삭제중...');
+          await window.firebaseManager.deleteAttendee(id);
+          // 실시간 리스너가 자동으로 UI 업데이트
+        } else {
+          // localStorage 백업
+          attendees = attendees.filter(a => a.id !== id);
+          saveAttendees();
+          sortAttendees();
+        }
+      } catch (error) {
+        console.error('참석자 삭제 오류:', error);
+        updateFirebaseStatus('offline', '❌ 삭제 실패');
+        alert('삭제 중 오류가 발생했습니다.');
+      }
     }
 
-    function toggleCheckIn(id) {
-      attendees = attendees.map(a => 
-        a.id === id 
-          ? { 
-              ...a, 
-              checkedIn: !a.checkedIn, 
-              checkedInAt: !a.checkedIn ? new Date().toLocaleString('ko-KR') : undefined 
-            }
-          : a
-      );
-      saveAttendees();
-      sortAttendees(); // 체크인 후 정렬 유지
+    async function toggleCheckIn(id) {
+      try {
+        const attendee = attendees.find(a => a.id === id);
+        if (!attendee) return;
+
+        if (window.firebaseManager) {
+          updateFirebaseStatus('syncing', '🔄 업데이트중...');
+          
+          const updates = {
+            checkedIn: !attendee.checkedIn,
+            checkedInAt: !attendee.checkedIn ? new Date().toLocaleString('ko-KR') : ''
+          };
+          
+          await window.firebaseManager.updateAttendee(id, updates);
+          // 실시간 리스너가 자동으로 UI 업데이트
+        } else {
+          // localStorage 백업
+          attendees = attendees.map(a => 
+            a.id === id 
+              ? { 
+                  ...a, 
+                  checkedIn: !a.checkedIn, 
+                  checkedInAt: !a.checkedIn ? new Date().toLocaleString('ko-KR') : '' 
+                }
+              : a
+          );
+          saveAttendees();
+          sortAttendees();
+        }
+      } catch (error) {
+        console.error('체크인 토글 오류:', error);
+        updateFirebaseStatus('offline', '❌ 업데이트 실패');
+        alert('체크인 상태 변경 중 오류가 발생했습니다.');
+      }
     }
 
     function sortAttendees() {
@@ -742,6 +989,20 @@
     
     // 페이지 로드 시 실행
     window.addEventListener('load', function() {
+        // Firebase 초기화 및 데이터 로드
+        loadAttendees();
+        
+        // 네트워크 상태 모니터링
+        window.addEventListener('online', () => {
+          if (window.firebaseManager) {
+            updateFirebaseStatus('online', `✅ 온라인 (${attendees.length}명)`);
+          }
+        });
+        
+        window.addEventListener('offline', () => {
+          updateFirebaseStatus('offline', `⚠️ 오프라인 (${attendees.length}명)`);
+        });
+        
         // 햄버거 메뉴 초기화
         initializeHamburgerMenu();
         // 초기 캐시 버전 설정
@@ -757,6 +1018,153 @@
       
       // 주기적으로 캐시 체크
       setInterval(checkCacheVersion, 5000);
+    });
+
+    // 빠른 액션 버튼 기능들
+    
+    // 전체 데이터 새로고침
+    async function refreshAllData() {
+      try {
+        updateFirebaseStatus('syncing', '🔄 새로고침 중...');
+        
+        if (window.firebaseManager) {
+          // Firebase 데이터 다시 로드
+          const freshData = await window.firebaseManager.getAttendees();
+          attendees = freshData.map(a => ({
+            id: a.id,
+            name: a.name || '',
+            phone: a.phone || '',
+            checkedIn: a.checkedIn || false,
+            checkedInAt: a.checkedInAt || '',
+            timestamp: a.timestamp
+          }));
+          
+          sortAttendees();
+          updateFirebaseStatus('online', `✅ 새로고침 완료 (${attendees.length}명)`);
+          
+          // 성공 알림
+          const notification = document.createElement('div');
+          notification.className = 'fixed top-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+          notification.textContent = `✅ ${attendees.length}명의 데이터가 새로고침되었습니다.`;
+          document.body.appendChild(notification);
+          
+          setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => document.body.removeChild(notification), 300);
+          }, 3000);
+          
+        } else {
+          throw new Error('Firebase Manager가 연결되지 않았습니다');
+        }
+      } catch (error) {
+        console.error('데이터 새로고침 오류:', error);
+        updateFirebaseStatus('offline', '❌ 새로고침 실패');
+        alert(`새로고침 실패: ${error.message}`);
+      }
+    }
+
+    // 빠른 통계 표시
+    function showQuickStats() {
+      const total = attendees.length;
+      const checkedIn = attendees.filter(a => a.checkedIn).length;
+      const pending = total - checkedIn;
+      const checkInRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+      
+      // 데이터 타입별 분류 (Firebase 연동 후 태그 정보 활용)
+      const realData = attendees.filter(a => a.dataType === 'REAL_DATA').length;
+      const sampleData = attendees.filter(a => a.dataType === 'SAMPLE_DATA').length;
+      const otherData = total - realData - sampleData;
+      
+      // 오늘 체크인한 사람들
+      const today = new Date().toDateString();
+      const todayCheckins = attendees.filter(a => {
+        if (!a.checkedInAt) return false;
+        const checkinDate = new Date(a.checkedInAt).toDateString();
+        return checkinDate === today && a.checkedIn;
+      }).length;
+
+      const statsMessage = `
+📊 실시간 참석 현황
+
+👥 총 참석자: ${total}명
+✅ 체크인 완료: ${checkedIn}명 (${checkInRate}%)
+⏰ 대기 중: ${pending}명
+
+📈 데이터 구성
+• 실제 데이터: ${realData}명
+• 샘플 데이터: ${sampleData}명  
+• 기타 데이터: ${otherData}명
+
+📅 오늘 체크인: ${todayCheckins}명
+
+🔥 Firebase 연결: ${window.firebaseManager ? '정상' : '오류'}
+💾 로컬 백업: ${localStorage.getItem('attendees') ? '있음' : '없음'}
+
+최종 업데이트: ${new Date().toLocaleString('ko-KR')}
+      `;
+
+      alert(statsMessage);
+    }
+
+    // 향상된 명단 내보내기
+    function exportAttendees() {
+      if (attendees.length === 0) {
+        alert('내보낼 데이터가 없습니다.');
+        return;
+      }
+
+      try {
+        // CSV 형식으로 데이터 준비
+        const csvHeader = '번호,이름,연락처,체크인여부,체크인시간,데이터타입,등록시간\n';
+        const csvContent = attendees.map((attendee, index) => {
+          return [
+            index + 1,
+            `"${attendee.name || ''}"`,
+            `"${attendee.phone || ''}"`,
+            attendee.checkedIn ? '체크인완료' : '대기중',
+            `"${attendee.checkedInAt || '-'}"`,
+            attendee.dataType === 'REAL_DATA' ? '실제데이터' : 
+            attendee.dataType === 'SAMPLE_DATA' ? '샘플데이터' : '기타',
+            `"${attendee.timestamp ? new Date(attendee.timestamp).toLocaleString('ko-KR') : '-'}"`
+          ].join(',');
+        }).join('\n');
+
+        const fullCsv = csvHeader + csvContent;
+        
+        // BOM 추가 (한글 깨짐 방지)
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + fullCsv], { type: 'text/csv;charset=utf-8;' });
+        
+        // 파일 다운로드
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '');
+        link.setAttribute('download', `오산고71회_송년회_참석명단_${dateStr}_${timeStr}.csv`);
+        
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 성공 메시지
+        alert(`📤 참석자 명단이 다운로드되었습니다!\n\n총 ${attendees.length}명의 데이터가 포함되었습니다.`);
+        
+      } catch (error) {
+        console.error('명단 내보내기 오류:', error);
+        alert(`내보내기 실패: ${error.message}`);
+      }
+    }
+
+    // 페이지 종료 시 Firebase 리스너 정리
+    window.addEventListener('beforeunload', function() {
+      if (firebaseUnsubscribe) {
+        firebaseUnsubscribe();
+        console.log('🔥 Firebase 리스너 해제됨');
+      }
     });
   </script>
 </body>
