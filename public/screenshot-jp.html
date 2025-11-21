@@ -128,7 +128,12 @@
                 const port = window.location.port || '8080';
                 checkinUrl = `http://${localIP}:${port}/checkin.html`;
             } else {
-                checkinUrl = `${baseUrl}/checkin.html`;
+                // より短いVercel URLを使用
+                if (window.location.hostname.includes('vercel.app')) {
+                    checkinUrl = 'https://gen-project-10.vercel.app/checkin';
+                } else {
+                    checkinUrl = `${baseUrl}/checkin`;
+                }
             }
             
             document.getElementById('checkinUrl').textContent = checkinUrl;

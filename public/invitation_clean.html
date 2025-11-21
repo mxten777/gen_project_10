@@ -202,8 +202,12 @@
                 console.log('2. 모바일에서 http://[컴퓨터IP]:8080/checkin.html 직접 접속');
                 console.log('3. 예: http://192.168.1.100:8080/checkin.html');
             } else {
-                // 배포된 서버인 경우 깔끔한 URL 사용
-                checkinUrl = window.location.origin + '/checkin';
+                // 배포된 서버인 경우 더 짧은 Vercel URL 사용
+                if (window.location.hostname.includes('vercel.app')) {
+                    checkinUrl = 'https://gen-project-10.vercel.app/checkin';
+                } else {
+                    checkinUrl = window.location.origin + '/checkin';
+                }
             }
             console.log('QR코드 URL:', checkinUrl);
             

@@ -80,7 +80,13 @@
         // QR 코드 생성 - 간단한 방법
         function createQRCode() {
             const qrArea = document.getElementById('qrArea');
-            const checkinUrl = window.location.origin + '/checkin';
+            // 더 짧은 Vercel URL 사용
+            let checkinUrl;
+            if (window.location.hostname.includes('vercel.app')) {
+                checkinUrl = 'https://gen-project-10.vercel.app/checkin';
+            } else {
+                checkinUrl = window.location.origin + '/checkin';
+            }
             
             // QR 코드 API 사용
             const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(checkinUrl)}`;
