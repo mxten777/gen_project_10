@@ -1,16 +1,9 @@
 {
   "version": 2,
   "public": true,
-  "functions": {
-    "public/**/*.html": {
-      "headers": {
-        "Cache-Control": "no-cache, no-store, must-revalidate"
-      }
-    }
-  },
   "headers": [
     {
-      "source": "/public/(.*)\\.html$",
+      "source": "/(.*)\\.html$",
       "headers": [
         {
           "key": "Cache-Control", 
@@ -19,32 +12,24 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
         }
       ]
     },
     {
-      "source": "/public/js/(.*)",
+      "source": "/js/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "value": "public, max-age=86400"
         }
       ]
     },
     {
-      "source": "/public/images/(.*)",
+      "source": "/images/(.*)",
       "headers": [
         {
           "key": "Cache-Control", 
-          "value": "public, max-age=31536000, immutable"
+          "value": "public, max-age=86400"
         }
       ]
     }
@@ -52,48 +37,31 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/public/index.html"
+      "destination": "/index.html"
     },
     {
       "source": "/invitation",
-      "destination": "/public/invitation.html"
+      "destination": "/invitation.html"
     },
     {
       "source": "/clean",
-      "destination": "/public/invitation_clean.html"
+      "destination": "/invitation_clean.html"
     },
     {
       "source": "/simple", 
-      "destination": "/public/invitation_simple.html"
+      "destination": "/invitation_simple.html"
     },
     {
       "source": "/checkin",
-      "destination": "/public/checkin.html"
+      "destination": "/checkin.html"
     },
     {
       "source": "/admin",
-      "destination": "/public/admin.html"
+      "destination": "/admin.html"
     },
     {
       "source": "/debug",
-      "destination": "/public/debug.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/invitation.html",
-      "destination": "/invitation",
-      "permanent": true
-    },
-    {
-      "source": "/checkin.html", 
-      "destination": "/checkin",
-      "permanent": true
-    },
-    {
-      "source": "/admin.html",
-      "destination": "/admin", 
-      "permanent": true
+      "destination": "/debug.html"
     }
   ]
 }
