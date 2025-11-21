@@ -264,33 +264,60 @@ try {
 class DataMigration {
     static async migrateFromLocalStorage() {
         const existingData = localStorage.getItem('attendees');
+        const migrationFlag = localStorage.getItem('firebase_migrated');
+        
+        // 안전 체크: 이미 마이그레이션했거나 명시적으로 삭제된 경우 복구 안함
+        if (migrationFlag === 'true') {
+            console.log('🚫 마이그레이션 이미 완료됨 - 자동 복구 방지');
+            return;
+        }
+        
         if (existingData && existingData !== '[]') {
             try {
                 const attendees = JSON.parse(existingData);
-                console.log('Migrating', attendees.length, 'attendees from localStorage');
+                console.log('🔄 localStorage에서', attendees.length, '명 마이그레이션 시작');
+                
+                // 사용자 확인 (관리자 페이지에서만)
+                if (window.location.pathname.includes('admin')) {
+                    const confirm = window.confirm(`localStorage에 ${attendees.length}명의 데이터가 있습니다.\nFirebase로 마이그레이션하시겠습니까?`);
+                    if (!confirm) {
+                        localStorage.setItem('firebase_migrated', 'true');
+                        return;
+                    }
+                }
                 
                 for (const attendee of attendees) {
                     await window.firebaseManager.addAttendee(attendee);
                 }
                 
-                // 마이그레이션 완료 후 localStorage 백업
+                // 마이그레이션 완료 후 안전하게 정리
                 localStorage.setItem('attendees_backup', existingData);
                 localStorage.setItem('attendees', '[]');
+                localStorage.setItem('firebase_migrated', 'true');
                 
-                alert(`${attendees.length}명의 기존 데이터를 Firebase로 이전했습니다.`);
+                if (window.location.pathname.includes('admin')) {
+                    alert(`✅ ${attendees.length}명의 기존 데이터를 Firebase로 이전했습니다.`);
+                }
             } catch (error) {
-                console.error('Migration failed:', error);
+                console.error('❌ 마이그레이션 실패:', error);
             }
         }
     }
 }
 
-// 페이지 로드 시 마이그레이션 실행 (한 번만)
+// 페이지 로드 시 마이그레이션 실행 (한 번만, 안전 체크 추가)
 document.addEventListener('DOMContentLoaded', () => {
-    if (!localStorage.getItem('firebase_migrated')) {
+    const migrated = localStorage.getItem('firebase_migrated');
+    const hasBackup = localStorage.getItem('attendees');
+    
+    // 마이그레이션 안전 체크: 명시적으로 삭제된 경우 복구하지 않음
+    if (!migrated && hasBackup && hasBackup !== '[]') {
+        console.log('🔄 localStorage에서 Firebase로 데이터 마이그레이션 시작');
         DataMigration.migrateFromLocalStorage().then(() => {
             localStorage.setItem('firebase_migrated', 'true');
         });
+    } else if (migrated === 'true') {
+        console.log('✅ 이미 마이그레이션 완료됨');
     }
 });
 

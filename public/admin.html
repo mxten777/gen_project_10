@@ -514,7 +514,8 @@
     }
 
     function saveAttendees() {
-      localStorage.setItem('attendees', JSON.stringify(attendees));
+      // Firebase 전용 모드: localStorage 백업 비활성화
+      // localStorage.setItem('attendees', JSON.stringify(attendees));
       // 캐시 버전 업데이트로 다른 페이지에 변경 알림
       localStorage.setItem('cacheVersion', Date.now().toString());
     }
@@ -783,11 +784,12 @@
           }
         }
 
-        // localStorage 초기화
+        // localStorage 완전 초기화 (자동 복구 방지)
         attendees = [];
         localStorage.removeItem('attendees');
+        localStorage.removeItem('attendees_backup');
         localStorage.removeItem('cacheVersion');
-        localStorage.removeItem('firebase_migrated');
+        localStorage.setItem('firebase_migrated', 'true'); // 재마이그레이션 방지
         
         renderAttendees();
         updateStats();
