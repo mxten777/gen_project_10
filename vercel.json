@@ -56,6 +56,10 @@
     },
     {
       "source": "/debug",
+      "destination": "/debug_simple.html"
+    },
+    {
+      "source": "/debug_old",
       "destination": "/debug.html"
     },
     {
