@@ -76,42 +76,15 @@
           <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
         </div>
         
-        <!-- 데스크톱 메뉴 -->
-        <div class="hidden md:flex space-x-2">
-          <a href="/invitation" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            🎊 초대장
-          </a>
-          <a href="/checkin" class="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white shadow-sm">
-            📝 체크인
-          </a>
-          <a href="/admin" class="px-4 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            ⚙️ 관리
+        <!-- 간단한 홈 버튼 -->
+        <div class="flex">
+          <a href="/" class="px-4 py-2 rounded-lg text-sm font-semibold bg-gray-600 hover:bg-gray-700 text-white shadow-sm transition-colors">
+            🏠 홈
           </a>
         </div>
-        
-        <!-- 햄버거 메뉴 버튼 -->
-        <button id="hamburger-btn" class="md:hidden text-white p-2 rounded-lg hover:bg-slate-700 transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
       </div>
     </div>
-    
-    <!-- 모바일 메뉴 (숨겨진 상태) -->
-    <div id="mobile-menu" class="md:hidden bg-black bg-opacity-95 border-t border-slate-600 hidden">
-      <div class="px-4 py-2 space-y-1">
-        <a href="/invitation" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🎊 초대장
-        </a>
-        <a href="/checkin" class="block px-4 py-3 rounded-lg text-sm font-semibold bg-green-600 text-white text-center">
-          📝 체크인
-        </a>
-        <a href="/admin" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          ⚙️ 관리
-        </a>
-      </div>
-    </div>
+
   </nav>
 
   <!-- 메인 컨텐츠 -->
@@ -339,32 +312,7 @@
       window.addEventListener('offline', () => {
         updateConnectionStatus('offline', '⚠️ 오프라인');
       });
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        if (hamburgerBtn && mobileMenu) {
-            hamburgerBtn.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-                
-                // 아이콘 변경 (햄버거 <-> X)
-                const svg = hamburgerBtn.querySelector('svg path');
-                if (mobileMenu.classList.contains('hidden')) {
-                    svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
-                } else {
-                    svg.setAttribute('d', 'M6 18L18 6M6 6l12 12');
-                }
-            });
-            
-            // 모바일 메뉴 링크 클릭 시 메뉴 닫기
-            const mobileLinks = mobileMenu.querySelectorAll('a');
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    mobileMenu.classList.add('hidden');
-                    const svg = hamburgerBtn.querySelector('svg path');
-                    svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
-                });
-            });
-        }
+        // 네비게이션 간소화 완료 - 홈 버튼만 유지
     });
     
     // 에러 메시지 표시 함수
