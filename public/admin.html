@@ -370,21 +370,47 @@ ${safetyCode}`);
 
         // Firebase 데이터 로드
         async function loadAttendees() {
+            console.log('🔥 Firebase 데이터 로드 시도...');
+            
+            // Firebase Manager가 준비될 때까지 최대 10초 대기
+            let attempts = 0;
+            const maxAttempts = 20; // 0.5초 * 20 = 10초
+            
+            const waitForFirebase = () => {
+                return new Promise((resolve, reject) => {
+                    const checkFirebase = () => {
+                        attempts++;
+                        console.log(`🔍 Firebase Manager 확인 중... (${attempts}/${maxAttempts})`);
+                        
+                        if (window.firebaseManager) {
+                            console.log('✅ Firebase Manager 준비됨');
+                            resolve();
+                        } else if (attempts >= maxAttempts) {
+                            console.error('❌ Firebase Manager 로드 시간 초과');
+                            reject(new Error('Firebase Manager 로드 실패'));
+                        } else {
+                            setTimeout(checkFirebase, 500);
+                        }
+                    };
+                    checkFirebase();
+                });
+            };
+
             try {
-                if (!window.firebaseManager) {
-                    console.log('Firebase Manager 초기화 중...');
-                    return;
-                }
+                await waitForFirebase();
 
                 // 실시간 리스너 설정
+                console.log('🔗 실시간 리스너 설정 중...');
                 firebaseUnsubscribe = window.firebaseManager.listenToAttendees((data) => {
+                    console.log('📊 데이터 업데이트:', data.length, '명');
                     attendees = data;
                     updateUI();
                 });
 
-                console.log('Firebase 연결 성공');
+                console.log('🎉 Firebase 연결 및 리스너 설정 완료');
             } catch (error) {
-                console.error('Firebase 로드 실패:', error);
+                console.error('❌ Firebase 로드 실패:', error);
+                alert('Firebase 연결에 실패했습니다. 페이지를 새로고침해주세요.');
             }
         }
 
@@ -485,7 +511,12 @@ ${safetyCode}`);
 
         // 페이지 로드 시 실행
         window.addEventListener('load', function() {
-            loadAttendees();
+            console.log('🚀 관리자 페이지 로드됨');
+            
+            // Firebase 스크립트 로드를 기다린 후 실행
+            setTimeout(() => {
+                loadAttendees();
+            }, 1500); // 1.5초 후 실행 (Firebase 로드 시간 확보)
         });
     </script>
 </body>
