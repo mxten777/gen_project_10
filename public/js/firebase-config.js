@@ -317,14 +317,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
     
+    // 자동 복구 방지 플래그 체크
+    const preventRestore = localStorage.getItem('prevent_auto_restore');
+    if (preventRestore === 'true') {
+        console.log('🚫 자동 복구 차단 플래그 활성화됨');
+        localStorage.setItem('firebase_migrated', 'true');
+        return;
+    }
+    
     if (dataClearedAt) {
         const clearedTime = new Date(dataClearedAt);
         const now = new Date();
         const timeDiff = (now - clearedTime) / 1000 / 60; // 분 단위
         
-        if (timeDiff < 60) { // 1시간 내 삭제된 경우
-            console.log('🚫 최근 데이터 삭제됨 - 자동 복구 차단');
+        if (timeDiff < 180) { // 3시간 내 삭제된 경우 (더 긴 시간으로 확장)
+            console.log(`🚫 최근 ${Math.round(timeDiff)}분 전 데이터 삭제됨 - 자동 복구 차단`);
             localStorage.setItem('firebase_migrated', 'true');
+            localStorage.setItem('prevent_auto_restore', 'true');
             return;
         }
     }
