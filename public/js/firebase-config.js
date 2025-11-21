@@ -305,10 +305,29 @@ class DataMigration {
     }
 }
 
-// 페이지 로드 시 마이그레이션 실행 (한 번만, 안전 체크 추가)
+// 페이지 로드 시 마이그레이션 실행 (한 번만, 엄격한 안전 체크)
 document.addEventListener('DOMContentLoaded', () => {
     const migrated = localStorage.getItem('firebase_migrated');
     const hasBackup = localStorage.getItem('attendees');
+    const dataClearedAt = localStorage.getItem('data_cleared_at');
+    
+    // 엄격한 마이그레이션 체크
+    if (migrated === 'true') {
+        console.log('✅ 마이그레이션 완료됨 - 자동 복구 차단');
+        return;
+    }
+    
+    if (dataClearedAt) {
+        const clearedTime = new Date(dataClearedAt);
+        const now = new Date();
+        const timeDiff = (now - clearedTime) / 1000 / 60; // 분 단위
+        
+        if (timeDiff < 60) { // 1시간 내 삭제된 경우
+            console.log('🚫 최근 데이터 삭제됨 - 자동 복구 차단');
+            localStorage.setItem('firebase_migrated', 'true');
+            return;
+        }
+    }
     
     // 마이그레이션 안전 체크: 명시적으로 삭제된 경우 복구하지 않음
     if (!migrated && hasBackup && hasBackup !== '[]') {
@@ -316,8 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
         DataMigration.migrateFromLocalStorage().then(() => {
             localStorage.setItem('firebase_migrated', 'true');
         });
-    } else if (migrated === 'true') {
-        console.log('✅ 이미 마이그레이션 완료됨');
     }
 });
 
