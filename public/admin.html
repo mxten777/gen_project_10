@@ -283,6 +283,12 @@
               🔄 캐시 초기화
             </button>
             <button
+              onclick="generateSampleData()"
+              class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+            >
+              🎭 샘플 데이터 생성
+            </button>
+            <button
               onclick="exportDataForSharing()"
               class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
             >
@@ -870,6 +876,86 @@
           console.error('캐시 클리어 중 오류:', error);
           alert('❌ 캐시 클리어 중 오류가 발생했습니다.\n수동으로 브라우저 설정에서 캐시를 삭제해주세요.');
         }
+      }
+    }
+
+    // 샘플 데이터 생성 (개발/테스트용)
+    async function generateSampleData() {
+      const sampleCount = prompt('생성할 샘플 데이터 개수를 입력하세요 (1-20):', '10');
+      
+      if (!sampleCount || isNaN(sampleCount)) {
+        alert('취소되었습니다.');
+        return;
+      }
+      
+      const count = Math.min(Math.max(parseInt(sampleCount), 1), 20);
+      
+      if (!confirm(`${count}명의 샘플 참석자 데이터를 생성하시겠습니까?\n\n⚠️ 이는 테스트용 데이터입니다.`)) {
+        return;
+      }
+      
+      try {
+        updateFirebaseStatus('syncing', '🎭 샘플 데이터 생성 중...');
+        
+        const sampleNames = [
+          '김철수', '이영희', '박민수', '최지영', '정현우',
+          '강서연', '임동현', '한미영', '조성민', '윤지혜',
+          '송태호', '배수진', '오준석', '남가영', '장혁진',
+          '전소영', '권민철', '황지우', '서은정', '노승현'
+        ];
+        
+        const sampleCompanies = [
+          '삼성전자', 'LG전자', '현대자동차', 'SK하이닉스', 'NAVER',
+          '카카오', 'KB금융', '신한은행', '포스코', 'KT',
+          '한국전력', '아모레퍼시픽', 'CJ제일제당', '롯데그룹', 'GS칼텍스',
+          '대한항공', '우리은행', 'LG화학', '두산그룹', 'LS그룹'
+        ];
+        
+        for (let i = 0; i < count; i++) {
+          const randomName = sampleNames[i % sampleNames.length] + (i >= 20 ? (Math.floor(i/20) + 1) : '');
+          const randomCompany = sampleCompanies[Math.floor(Math.random() * sampleCompanies.length)];
+          const randomPhone = `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+          const randomCompanions = Math.floor(Math.random() * 3); // 0-2명
+          
+          const sampleAttendee = {
+            name: randomName,
+            phone: randomPhone,
+            company: randomCompany,
+            companions: randomCompanions,
+            message: `안녕하세요! ${randomName}입니다. 송년회 참석하겠습니다.`,
+            checkedIn: true,
+            dataType: 'SAMPLE_DATA',
+            timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000) // 최근 일주일 내 랜덤
+          };
+          
+          if (window.firebaseManager) {
+            await window.firebaseManager.addAttendee(sampleAttendee);
+          } else {
+            // Firebase 없을 때 로컬에만 추가
+            sampleAttendee.id = 'sample_' + Date.now() + '_' + i;
+            attendees.push(sampleAttendee);
+          }
+          
+          // UI 업데이트
+          if (i % 5 === 0 || i === count - 1) {
+            updateFirebaseStatus('syncing', `🎭 샘플 데이터 생성 중... (${i + 1}/${count})`);
+            await new Promise(resolve => setTimeout(resolve, 100)); // 잠시 대기
+          }
+        }
+        
+        updateFirebaseStatus('online', '✅ 샘플 데이터 생성 완료');
+        alert(`✅ ${count}명의 샘플 데이터가 생성되었습니다!`);
+        
+        // 데이터 새로고침
+        if (!window.firebaseManager) {
+          renderAttendees();
+          updateStats();
+        }
+        
+      } catch (error) {
+        console.error('샘플 데이터 생성 오류:', error);
+        updateFirebaseStatus('offline', '❌ 생성 실패');
+        alert(`샘플 데이터 생성 중 오류 발생: ${error.message}`);
       }
     }
 
