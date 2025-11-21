@@ -1067,6 +1067,18 @@
       }
       
       try {
+        // Firebase 연결 상태 확인
+        if (!window.firebaseManager) {
+          alert('❌ Firebase가 연결되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+          return;
+        }
+        
+        // 실시간 리스너가 비활성화된 경우 재연결
+        if (!firebaseUnsubscribe) {
+          console.log('🔄 실시간 리스너 재시작 중...');
+          loadAttendeesFromFirebase();
+        }
+        
         updateFirebaseStatus('syncing', '🎭 샘플 데이터 생성 중...');
         
         const sampleNames = [
@@ -1115,14 +1127,19 @@
           }
         }
         
-        updateFirebaseStatus('online', '✅ 샘플 데이터 생성 완료');
-        alert(`✅ ${count}명의 샘플 데이터가 생성되었습니다!`);
+        // 생성 완료 후 데이터 재로드
+        console.log('🎭 샘플 데이터 생성 완료, UI 업데이트 중...');
         
-        // 데이터 새로고침
-        if (!window.firebaseManager) {
+        // Firebase에서 최신 데이터 가져오기
+        if (window.firebaseManager) {
+          const updatedData = await window.firebaseManager.getAttendees();
+          attendees = updatedData;
           renderAttendees();
           updateStats();
         }
+        
+        updateFirebaseStatus('online', `✅ 샘플 데이터 생성 완료 (${count}명)`);
+        alert(`✅ ${count}명의 샘플 데이터가 생성되었습니다!\n\n📊 현재 총 ${attendees.length}명의 데이터가 있습니다.`);
         
       } catch (error) {
         console.error('샘플 데이터 생성 오류:', error);
