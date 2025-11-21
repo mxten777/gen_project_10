@@ -207,8 +207,26 @@
             timestamp: new Date()
           };
           
-          await window.firebaseManager.addAttendee(attendeeData);
+          console.log('📝 체크인 데이터 저장 시도:', attendeeData);
+          const result = await window.firebaseManager.addAttendee(attendeeData);
+          console.log('✅ Firebase 저장 성공:', result);
           updateConnectionStatus('online', '✅ 저장완료');
+          
+          // 추가 확인을 위해 잠시 후 데이터 조회
+          setTimeout(async () => {
+            try {
+              const attendees = await window.firebaseManager.getAttendees();
+              const saved = attendees.find(a => a.name === name);
+              if (saved) {
+                console.log('✅ 저장 확인됨:', saved);
+              } else {
+                console.error('❌ 저장되지 않음 - 다시 시도 필요');
+                alert('⚠️ 저장 확인 실패. 관리자에게 문의하세요.');
+              }
+            } catch (error) {
+              console.error('저장 확인 중 오류:', error);
+            }
+          }, 1000);
           
         } else {
           // Firebase가 없을 경우 localStorage 사용 (백업)
