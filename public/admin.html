@@ -1,1550 +1,492 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="version" content="v2.1.0">
-  <title>운영진 관리 - 오산고 71회 동기 송년회</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Firebase SDK & Config -->
-  <script type="module">
-    // Firebase 설정 파일 로드
-    import('./js/firebase-config.js')
-      .then(() => {
-        console.log('✅ Firebase 설정 로드 완료');
-        // Firebase Manager 사용 가능 알림
-        if (window.firebaseManager) {
-          console.log('🔥 Firebase Manager 준비됨');
-        }
-      })
-      .catch(error => {
-        console.error('❌ Firebase 설정 로드 실패:', error);
-      });
-  </script>
-  
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segue UI", "Noto Sans KR", sans-serif; }
-    
-    /* Firebase 연결 상태 표시 */
-    .firebase-status {
-      position: fixed;
-      top: 70px;
-      right: 20px;
-      z-index: 40;
-      padding: 8px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-    
-    .status-online { background: #10b981; color: white; }
-    .status-offline { background: #f59e0b; color: white; }
-    .status-syncing { background: #3b82f6; color: white; animation: pulse 2s infinite; }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>송년회 관리자 - 간단 버전</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/firebase-config.js"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-slate-900 min-h-screen">
-  
-  <!-- Firebase 연결 상태 표시 -->
-  <div id="firebaseStatus" class="firebase-status status-syncing">
-    <span id="firebaseStatusText">🔄 Firebase 연결중...</span>
-  </div>
-  
-  <!-- 네비게이션 바 -->
-  <nav class="fixed top-0 left-0 right-0 z-50 bg-black bg-opacity-80 backdrop-blur-md border-b border-slate-600 shadow-lg">
-    <div class="max-w-7xl mx-auto px-2 sm:px-4">
-      <div class="flex justify-between items-center h-16">
-        <div class="flex items-center space-x-2 sm:space-x-4">
-          <img src="images/osan_log3.svg" alt="오산고 로고" class="w-8 h-8 sm:w-12 sm:h-12 object-contain">
-          <h1 class="text-white font-bold text-sm sm:text-lg drop-shadow-sm">오산고 71회 송년회</h1>
-        </div>
-        
-        <!-- 데스크톱 메뉴 -->
-        <div class="hidden lg:flex space-x-2">
-          <!-- 핵심 기능 -->
-          <a href="/invitation" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            🎊 초대장
-          </a>
-          <a href="/clean" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            ✨ 깔끔한
-          </a>
-          <a href="/checkin" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            📝 체크인
-          </a>
-          <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
-            ⚙️ 관리
-          </a>
-          
-          <!-- 관리자 도구 -->
-          <div class="border-l border-slate-600 pl-2 ml-2"></div>
-          <a href="debug.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors">
-            🔧 디버그
-          </a>
-          
-          <!-- 부가 기능 -->
-          <div class="border-l border-slate-600 pl-2 ml-2"></div>
-          <a href="/screenshot" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            📸 스크린샷
-          </a>
-          <a href="/screenshot-jp" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            🇯🇵 日本語
-          </a>
-          <button onclick="toggleSchoolSong()" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            🎵 교가
-          </button>
-        </div>
-
-        <!-- 중간 크기 화면용 축약 메뉴 -->
-        <div class="hidden md:flex lg:hidden space-x-2">
-          <a href="/invitation" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            🎊
-          </a>
-          <a href="/clean" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            ✨
-          </a>
-          <a href="/checkin" class="px-3 py-2 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors">
-            📝
-          </a>
-          <a href="/admin" class="px-3 py-2 rounded-lg text-sm font-semibold bg-purple-600 text-white shadow-sm">
-            ⚙️
-          </a>
-          <a href="debug.html" class="px-3 py-2 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors">
-            🔧
-          </a>
-        </div>
-        
-        <!-- 햄버거 메뉴 버튼 -->
-        <button id="hamburger-btn" class="md:hidden text-white p-2 rounded-lg hover:bg-slate-700 transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
-    
-    <!-- 모바일 메뉴 (숨겨진 상태) -->
-    <div id="mobile-menu" class="md:hidden bg-black bg-opacity-95 border-t border-slate-600 hidden">
-      <div class="px-4 py-2 space-y-1">
-        
-        <!-- 초대장 버전 그룹 -->
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700">
-          초대장 버전
-        </div>
-        <a href="/invitation" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🎊 메인 초대장
-        </a>
-        <a href="/clean" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          ✨ 깔끔한 초대장
-        </a>
-        
-        <!-- 핵심 기능 그룹 -->
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
-          핵심 기능
-        </div>
-        <a href="/checkin" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          📝 체크인
-        </a>
-        <a href="/admin" class="block px-4 py-3 rounded-lg text-sm font-semibold bg-purple-600 text-white text-center">
-          ⚙️ 관리자 (현재 페이지)
-        </a>
-        
-        <!-- 관리자 도구 그룹 -->
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
-          관리자 도구
-        </div>
-        <a href="debug.html" class="block px-4 py-3 rounded-lg text-sm font-semibold text-blue-300 hover:text-white hover:bg-blue-600 transition-colors text-center">
-          🔧 디버그 & 분석
-        </a>
-        
-        <!-- 부가 기능 그룹 -->
-        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide px-4 py-2 border-b border-slate-700 mt-4">
-          부가 기능
-        </div>
-        <a href="/screenshot" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          📸 스크린샷
-        </a>
-        <a href="/screenshot-jp" class="block px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🇯🇵 日本語 페이지
-        </a>
-        <button onclick="toggleSchoolSong()" class="block w-full px-4 py-3 rounded-lg text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-700 transition-colors text-center">
-          🎵 교가 듣기
-        </button>
-        
-        <!-- 시스템 정보 -->
-        <div class="text-xs text-slate-500 text-center px-4 py-3 border-t border-slate-700 mt-4">
-          <div>오산고 71회 동기 송년회</div>
-          <div class="mt-1">관리자 시스템 v2.1.0</div>
-        </div>
-      </div>
-    </div>
-  </nav>
-
-  <!-- 메인 컨텐츠 -->
-  <div class="pt-16 px-2 sm:px-4 pb-4">
-    <div class="max-w-6xl mx-auto">
-      <!-- 헤더 -->
-      <header class="mb-4 sm:mb-6 md:mb-8">
-        <div class="text-center mb-6">
-          <h1 class="text-xl sm:text-2xl md:text-4xl font-bold text-white mb-2">오산고 71회 동기 송년회</h1>
-          <h2 class="text-lg sm:text-xl md:text-2xl font-semibold text-blue-300 mb-4">운영진 대시보드</h2>
-        </div>
-        
-        <!-- 관리자 빠른 액션 버튼들 -->
-        <div class="mb-6 flex flex-wrap justify-center gap-2 sm:gap-4">
-          <a href="debug.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
-            🔧 시스템 디버그
-          </a>
-          <button onclick="refreshAllData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
-            🔄 데이터 새로고침
-          </button>
-          <button onclick="exportAttendees()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
-            📤 명단 내보내기
-          </button>
-          <button onclick="showQuickStats()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-colors">
-            📊 빠른 통계
-          </button>
-        </div>
-        
-        <div class="bg-blue-800 bg-opacity-50 rounded-lg p-4 text-center">
-          <p class="text-white text-lg">
-            총 <span id="totalCount" class="font-bold text-yellow-300">0명</span> 중 
-            <span id="checkedInCount" class="font-bold text-green-300">0명</span> 체크인 완료
-          </p>
-        </div>
-      </header>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <!-- 참석자 추가 섹션 -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-blue-500">
-          <h3 class="text-xl font-semibold text-white mb-4">참석자 추가</h3>
-          <div class="space-y-4">
-            <input
-              type="text"
-              id="newName"
-              placeholder="이름"
-              class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
-            />
-            <input
-              type="text"
-              id="newPhone"
-              placeholder="전화번호 (선택사항)"
-              class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
-            />
-            <button
-              onclick="addAttendee()"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              추가
-            </button>
-          </div>
-        </div>
-
-        <!-- 액션 버튼 섹션 -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-green-500">
-          <h3 class="text-xl font-semibold text-white mb-4">명단 관리</h3>
-          <div class="space-y-3">
-            <button
-              onclick="copyToClipboard()"
-              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              📋 클립보드 복사
-            </button>
-            <button
-              onclick="exportToCSV()"
-              class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              📁 CSV 다운로드
-            </button>
-            <button
-              onclick="confirmCompleteReset()"
-              class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              🗑️ 전체 삭제
-            </button>
-            <button
-              onclick="generateSampleData()"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              🎭 샘플 데이터 생성
-            </button>
-            <button
-              onclick="exportDataForSharing()"
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              📱 데이터 공유
-            </button>
-            <button
-              onclick="importSharedData()"
-              class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-            >
-              📲 데이터 가져오기
-            </button>
-            <div class="text-sm text-slate-300 mt-4 p-3 bg-slate-800 rounded-lg">
-              <p class="mb-1">💡 <strong>사용법:</strong></p>
-              <p class="text-xs">• 체크인 버튼으로 출석 관리</p>
-              <p class="text-xs">• 삭제 버튼으로 개별 제거</p>
-              <p class="text-xs">• 복사/다운로드로 명단 백업</p>
-              <p class="text-xs text-red-300">• ⚠️ 전체 초기화는 신중히 사용</p>
-              <p class="text-xs text-orange-300">• 🔄 캐시 초기화는 모바일 데이터 문제 시</p>
-              <p class="text-xs text-blue-300">• 📱 데이터 공유로 다른 디바이스에 복사</p>
-              <p class="text-xs text-green-300">• 📲 데이터 가져오기로 업데이트</p>
+<body class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 헤더 -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-2">
+                🎉 오산고 71회 송년회
+            </h1>
+            <p class="text-blue-200 text-lg">관리자 페이지 (간단 버전)</p>
+            <div class="mt-2">
+                <a href="debug.html" class="text-blue-300 hover:text-white text-sm underline">
+                    🔧 시스템 디버그
+                </a>
             </div>
-          </div>
+            
+            <div class="mt-4 bg-blue-800 bg-opacity-50 rounded-lg p-4">
+                <p class="text-white text-lg">
+                    총 <span id="totalCount" class="font-bold text-yellow-300">0명</span> 중 
+                    <span id="checkedInCount" class="font-bold text-green-300">0명</span> 체크인 완료
+                </p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 참석자 추가 -->
+            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-blue-500">
+                <h3 class="text-xl font-semibold text-white mb-4">참석자 추가</h3>
+                <div class="space-y-4">
+                    <input
+                        type="text"
+                        id="newName"
+                        placeholder="이름"
+                        class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
+                    />
+                    <input
+                        type="text"
+                        id="newPhone"
+                        placeholder="전화번호 (선택사항)"
+                        class="w-full p-3 rounded-lg bg-slate-800 text-white border border-slate-600 focus:border-blue-400 focus:outline-none"
+                    />
+                    <button
+                        onclick="addAttendee()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        추가
+                    </button>
+                </div>
+            </div>
+
+            <!-- 간단한 관리 메뉴 -->
+            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-green-500">
+                <h3 class="text-xl font-semibold text-white mb-4">관리</h3>
+                <div class="space-y-3">
+                    <button
+                        onclick="copyToClipboard()"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        📋 클립보드 복사
+                    </button>
+                    <button
+                        onclick="exportToCSV()"
+                        class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        📁 CSV 다운로드
+                    </button>
+                    <button
+                        onclick="exportForSharing()"
+                        class="w-full bg-teal-600 hover:bg-teal-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        📤 공유용 내보내기
+                    </button>
+                    <button
+                        onclick="refreshAllData()"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        🔄 데이터 새로고침
+                    </button>
+                    <button
+                        onclick="showQuickStats()"
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        📊 빠른 통계
+                    </button>
+                    <button
+                        onclick="generateSampleData()"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        🎭 샘플 데이터 생성
+                    </button>
+                    <button
+                        onclick="confirmCompleteReset()"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
+                    >
+                        🗑️ 전체 삭제
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- 통계 섹션 -->
-        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-yellow-500">
-          <h3 class="text-xl font-semibold text-white mb-4">실시간 현황</h3>
-          <div class="space-y-3">
-            <div class="bg-slate-800 rounded-lg p-3">
-              <p class="text-yellow-300 font-semibold">체크인 현황</p>
-              <p id="progressText" class="text-2xl font-bold text-white">0 / 0</p>
-              <div class="w-full bg-slate-700 rounded-full h-2 mt-2">
-                <div id="progressBar" class="bg-gradient-to-r from-green-400 to-blue-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-              </div>
+        <!-- 참석자 목록 -->
+        <div class="mt-6 bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-purple-500">
+            <h3 class="text-xl font-semibold text-white mb-4">참석자 목록</h3>
+            <div id="attendeeList" class="space-y-2 max-h-96 overflow-y-auto">
+                <div class="text-gray-400 text-center py-8">참석자가 없습니다.</div>
             </div>
-            <div class="bg-slate-800 rounded-lg p-3">
-              <p class="text-blue-300 font-semibold">완료율</p>
-              <p id="completionRate" class="text-2xl font-bold text-white">0%</p>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <!-- 참석자 명단 -->
-      <div class="mt-8 bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-4 sm:p-6 border border-slate-500">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold text-white">참석자 명단</h3>
-          <div class="flex items-center gap-4">
-            <select id="sortOption" onchange="sortAttendees()" class="bg-slate-700 text-white text-sm px-3 py-1 rounded border border-slate-600 focus:border-blue-400">
-              <option value="name">이름순</option>
-              <option value="checkin">체크인순</option>
-              <option value="time">등록순</option>
-            </select>
-            <div class="text-sm text-slate-300">
-              <span id="listCount">0명</span> 표시중
-            </div>
-          </div>
-        </div>
-        <div class="overflow-x-auto max-h-96 overflow-y-auto border border-slate-600 rounded-lg">
-          <table class="w-full text-white text-sm">
-            <thead class="bg-slate-800 sticky top-0">
-              <tr class="border-b border-slate-600">
-                <th class="text-left py-2 px-2 font-semibold">이름</th>
-                <th class="text-left py-2 px-2 font-semibold hidden sm:table-cell">전화번호</th>
-                <th class="text-center py-2 px-2 font-semibold">상태</th>
-                <th class="text-center py-2 px-2 font-semibold hidden md:table-cell">체크인 시간</th>
-                <th class="text-center py-2 px-2 font-semibold">액션</th>
-              </tr>
-            </thead>
-            <tbody id="attendeesList">
-              <tr id="emptyMessage">
-                <td colspan="5" class="text-center py-8 text-slate-400">
-                  <div class="mb-2">🎯 아직 등록된 참석자가 없습니다</div>
-                  <div class="text-xs text-slate-500">
-                    좌측 "참석자 추가" 섹션에서 이름을 입력하여<br>
-                    참석자를 등록해보세요!
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <!-- 교가 모달 -->
-  <div id="schoolSongModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
-    <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 m-4 max-w-lg w-full max-h-[80vh] overflow-y-auto border border-blue-500">
-      <div class="text-center mb-4">
-        <h2 class="text-2xl font-bold text-white mb-2">🎵 오산고 교가</h2>
-        <p class="text-blue-300 text-sm">다섯 뫼의 아이들</p>
-      </div>
-      
-      <div class="space-y-4 text-white">
-        <!-- 1절 -->
-        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-yellow-300 mb-2">1절</h3>
-          <p class="leading-relaxed text-sm">
-            네 눈이 밝구나 엑스빛같다<br>
-            하늘을 꿰뚫고 땅을 들추어<br>
-            온가지 진리를 캐고 말련다<br>
-            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
-          </p>
-        </div>
-        
-        <!-- 2절 -->
-        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-yellow-300 mb-2">2절</h3>
-          <p class="leading-relaxed text-sm">
-            네 손이 솔갑고 힘도 크구나<br>
-            불길도 만지고 돌도 주물러<br>
-            새로운 누리를 짓고 말련다<br>
-            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
-          </p>
-        </div>
-        
-        <!-- 3절 -->
-        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-yellow-300 mb-2">3절</h3>
-          <p class="leading-relaxed text-sm">
-            네 맘이 맑구나 예민도 하다<br>
-            하늘과 땅 사이 미묘한 것이<br>
-            거울에 더 맑게 비치는구나<br>
-            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
-          </p>
-        </div>
-        
-        <!-- 4절 -->
-        <div class="bg-blue-800 bg-opacity-30 rounded-lg p-4">
-          <h3 class="text-lg font-semibold text-yellow-300 mb-2">4절</h3>
-          <p class="leading-relaxed text-sm">
-            네 인격 높구나 정성과 사랑<br>
-            네 손발 가는데 화평이 있고<br>
-            무심한 미물도 다 믿는구나<br>
-            <strong class="text-blue-200">네가 참 다섯 뫼의 아이로구나</strong>
-          </p>
-        </div>
-      </div>
-      
-      <div class="mt-6 text-center">
-        <button onclick="toggleSchoolSong()" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-          닫기
-        </button>
-      </div>
-    </div>
-  </div>
+    <script>
+        let attendees = [];
+        let firebaseUnsubscribe = null;
 
-  <script>
-    let attendees = [];
-    let firebaseUnsubscribe = null; // 실시간 리스너 해제용
-
-    // Firebase 상태 업데이트 함수
-    function updateFirebaseStatus(status, message) {
-      const statusElement = document.getElementById('firebaseStatus');
-      const statusText = document.getElementById('firebaseStatusText');
-      
-      if (statusElement && statusText) {
-        statusElement.className = `firebase-status status-${status}`;
-        statusText.textContent = message;
-      }
-    }
-
-    // Firebase에서 실시간 데이터 로드
-    async function loadAttendeesFromFirebase() {
-      if (!window.firebaseManager) {
-        console.warn('Firebase Manager가 없습니다. localStorage를 사용합니다.');
-        return loadAttendeesFromLocalStorage();
-      }
-
-      try {
-        // 삭제 방지 플래그 체크
-        const preventRestore = localStorage.getItem('prevent_auto_restore');
-        const dataClearedAt = localStorage.getItem('data_cleared_at');
-        
-        if (preventRestore === 'true' || dataClearedAt) {
-          const clearedTime = dataClearedAt ? new Date(dataClearedAt) : null;
-          const timeDiff = clearedTime ? (new Date() - clearedTime) / 1000 / 60 : 0;
-          
-          if (timeDiff < 180) { // 3시간 내
-            console.log('🚫 최근 삭제됨 - 실시간 리스너 비활성화');
-            updateFirebaseStatus('offline', '🚫 데이터 삭제됨 - 리스너 비활성화');
-            attendees = [];
-            renderAttendees();
-            updateStats();
-            return;
-          }
+        // Firebase 상태 표시
+        function updateFirebaseStatus(status, message) {
+            // 간단한 상태 표시만
+            console.log(`Firebase ${status}: ${message}`);
         }
-        
-        updateFirebaseStatus('syncing', '🔄 데이터 로딩중...');
-        
-        // 실시간 리스너 설정
-        firebaseUnsubscribe = window.firebaseManager.onAttendeesUpdate((firebaseAttendees) => {
-          attendees = firebaseAttendees.map(a => ({
-            id: a.id,
-            name: a.name || '',
-            phone: a.phone || '',
-            checkedIn: a.checkedIn || false,
-            checkedInAt: a.checkedInAt || '',
-            timestamp: a.timestamp
-          }));
-          
-          sortAttendees();
-          updateStats();
-          updateFirebaseStatus('online', `✅ 실시간 연결 (${attendees.length}명)`);
-          console.log('🔥 Firebase 실시간 데이터 업데이트:', attendees.length);
-        });
 
-      } catch (error) {
-        console.error('Firebase 데이터 로드 오류:', error);
-        updateFirebaseStatus('offline', '❌ Firebase 오류');
-        loadAttendeesFromLocalStorage(); // 백업으로 localStorage 사용
-      }
-    }
-
-    // localStorage에서 데이터 로드 (백업용)
-    function loadAttendeesFromLocalStorage() {
-      const saved = localStorage.getItem('attendees');
-      if (saved) {
-        attendees = JSON.parse(saved);
-      } else {
-        attendees = [];
-      }
-      sortAttendees();
-      updateFirebaseStatus('offline', `⚠️ 오프라인 (${attendees.length}명)`);
-    }
-
-    // 페이지 로드 시 데이터 불러오기
-    async function loadAttendees() {
-      // Firebase Manager가 로드될 때까지 대기
-      let retryCount = 0;
-      const maxRetries = 10;
-      
-      const waitForFirebase = () => {
-        if (window.firebaseManager) {
-          return loadAttendeesFromFirebase();
-        } else if (retryCount < maxRetries) {
-          retryCount++;
-          setTimeout(() => waitForFirebase(), 500);
-        } else {
-          console.warn('Firebase 로드 시간 초과');
-          loadAttendeesFromLocalStorage();
-        }
-      };
-      
-      waitForFirebase();
-    }
-
-    function saveAttendees() {
-      // Firebase 전용 모드: localStorage 백업 비활성화
-      // localStorage.setItem('attendees', JSON.stringify(attendees));
-      // 캐시 버전 업데이트로 다른 페이지에 변경 알림
-      localStorage.setItem('cacheVersion', Date.now().toString());
-    }
-
-    async function addAttendee() {
-      const name = document.getElementById('newName').value.trim();
-      const phone = document.getElementById('newPhone').value.trim();
-      
-      if (!name) {
-        alert('이름을 입력해주세요.');
-        return;
-      }
-
-      try {
-        if (window.firebaseManager) {
-          updateFirebaseStatus('syncing', '🔄 추가중...');
-          
-          const attendeeData = {
-            name: name,
-            phone: phone || '',
-            checkedIn: false,
-            checkedInAt: '',
-            timestamp: new Date()
-          };
-          
-          await window.firebaseManager.addAttendee(attendeeData);
-          updateFirebaseStatus('online', `✅ 추가완료 (${attendees.length + 1}명)`);
-          
-        } else {
-          // Firebase가 없을 경우 localStorage 사용
-          const newAttendee = {
-            id: Date.now().toString(),
-            name: name,
-            phone: phone || '',
-            checkedIn: false
-          };
-          attendees.push(newAttendee);
-          saveAttendees();
-          sortAttendees();
-        }
-        
-        // 입력 필드 초기화
-        document.getElementById('newName').value = '';
-        document.getElementById('newPhone').value = '';
-        
-      } catch (error) {
-        console.error('참석자 추가 오류:', error);
-        updateFirebaseStatus('offline', '❌ 추가 실패');
-        alert('참석자 추가 중 오류가 발생했습니다.');
-      }
-    }
-
-    async function removeAttendee(id) {
-      if (!confirm('정말로 삭제하시겠습니까?')) {
-        return;
-      }
-
-      try {
-        if (window.firebaseManager) {
-          updateFirebaseStatus('syncing', '🔄 삭제중...');
-          await window.firebaseManager.deleteAttendee(id);
-          // 실시간 리스너가 자동으로 UI 업데이트
-        } else {
-          // localStorage 백업
-          attendees = attendees.filter(a => a.id !== id);
-          saveAttendees();
-          sortAttendees();
-        }
-      } catch (error) {
-        console.error('참석자 삭제 오류:', error);
-        updateFirebaseStatus('offline', '❌ 삭제 실패');
-        alert('삭제 중 오류가 발생했습니다.');
-      }
-    }
-
-    async function toggleCheckIn(id) {
-      try {
-        const attendee = attendees.find(a => a.id === id);
-        if (!attendee) return;
-
-        if (window.firebaseManager) {
-          updateFirebaseStatus('syncing', '🔄 업데이트중...');
-          
-          const updates = {
-            checkedIn: !attendee.checkedIn,
-            checkedInAt: !attendee.checkedIn ? new Date().toLocaleString('ko-KR') : ''
-          };
-          
-          await window.firebaseManager.updateAttendee(id, updates);
-          // 실시간 리스너가 자동으로 UI 업데이트
-        } else {
-          // localStorage 백업
-          attendees = attendees.map(a => 
-            a.id === id 
-              ? { 
-                  ...a, 
-                  checkedIn: !a.checkedIn, 
-                  checkedInAt: !a.checkedIn ? new Date().toLocaleString('ko-KR') : '' 
-                }
-              : a
-          );
-          saveAttendees();
-          sortAttendees();
-        }
-      } catch (error) {
-        console.error('체크인 토글 오류:', error);
-        updateFirebaseStatus('offline', '❌ 업데이트 실패');
-        alert('체크인 상태 변경 중 오류가 발생했습니다.');
-      }
-    }
-
-    function sortAttendees() {
-      const sortOption = document.getElementById('sortOption').value;
-      
-      switch(sortOption) {
-        case 'name':
-          attendees.sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-          break;
-        case 'checkin':
-          attendees.sort((a, b) => {
-            if (a.checkedIn === b.checkedIn) {
-              return a.name.localeCompare(b.name, 'ko');
+        // 참석자 추가
+        async function addAttendee() {
+            const nameInput = document.getElementById('newName');
+            const phoneInput = document.getElementById('newPhone');
+            
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('이름을 입력하세요.');
+                nameInput.focus();
+                return;
             }
-            return b.checkedIn - a.checkedIn; // 체크인 완료가 먼저
-          });
-          break;
-        case 'time':
-          attendees.sort((a, b) => {
-            const timeA = a.checkedInAt || a.registeredAt || '0';
-            const timeB = b.checkedInAt || b.registeredAt || '0';
-            return timeB.localeCompare(timeA); // 최신순
-          });
-          break;
-      }
-      
-      renderAttendees();
-      saveAttendees();
-    }
 
-    function renderAttendees() {
-      const tbody = document.getElementById('attendeesList');
-      const emptyMessage = document.getElementById('emptyMessage');
-      
-      if (attendees.length === 0) {
-        emptyMessage.style.display = 'table-row';
-      } else {
-        emptyMessage.style.display = 'none';
-        
-        const rows = attendees.map(attendee => `
-          <tr class="border-b border-slate-700 hover:bg-white hover:bg-opacity-5">
-            <td class="py-2 px-2 font-semibold">
-              <div>${attendee.name}</div>
-              <div class="text-xs text-slate-400 sm:hidden">${attendee.phone || ''}</div>
-            </td>
-            <td class="py-2 px-2 text-slate-300 hidden sm:table-cell">${attendee.phone || '-'}</td>
-            <td class="py-2 px-2 text-center">
-              <span class="px-2 py-1 rounded-full text-xs font-semibold ${
-                attendee.checkedIn 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-slate-600 text-slate-300'
-              }">
-                ${attendee.checkedIn ? '✓' : '○'}
-              </span>
-              <div class="text-xs text-slate-400 mt-1 md:hidden">
-                ${attendee.checkedInAt ? attendee.checkedInAt.split(' ')[1] : ''}
-              </div>
-            </td>
-            <td class="py-2 px-2 text-center text-xs text-slate-300 hidden md:table-cell">
-              ${attendee.checkedInAt || '-'}
-            </td>
-            <td class="py-2 px-2 text-center">
-              <div class="flex flex-col sm:flex-row justify-center space-y-1 sm:space-y-0 sm:space-x-1">
-                <button
-                  onclick="toggleCheckIn('${attendee.id}')"
-                  class="px-2 py-1 rounded text-xs font-semibold transition-colors ${
-                    attendee.checkedIn
-                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  }"
-                >
-                  ${attendee.checkedIn ? '취소' : '체크인'}
-                </button>
-                <button
-                  onclick="removeAttendee('${attendee.id}')"
-                  class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-semibold transition-colors"
-                >
-                  삭제
-                </button>
-              </div>
-            </td>
-          </tr>
-        `).join('');
-        
-        tbody.innerHTML = emptyMessage.outerHTML + rows;
-      }
-      
-      updateStats();
-    }
+            const phone = phoneInput.value.trim();
+            const attendee = {
+                id: Date.now().toString(),
+                name,
+                phone,
+                checkedIn: false,
+                timestamp: new Date().toISOString()
+            };
 
-    function updateStats() {
-      const total = attendees.length;
-      const checkedIn = attendees.filter(a => a.checkedIn).length;
-      const rate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
-      
-      document.getElementById('totalCount').textContent = total + '명';
-      document.getElementById('checkedInCount').textContent = checkedIn + '명';
-      document.getElementById('progressText').textContent = `${checkedIn} / ${total}`;
-      document.getElementById('completionRate').textContent = rate + '%';
-      document.getElementById('progressBar').style.width = rate + '%';
-      document.getElementById('listCount').textContent = total + '명';
-    }
-
-    function copyToClipboard() {
-      const text = attendees.map(a => 
-        `${a.name}\t${a.phone || ''}\t${a.checkedIn ? '완료' : '미완료'}\t${a.checkedInAt || ''}`
-      ).join('\n');
-      
-      navigator.clipboard.writeText(`이름\t전화번호\t체크인 여부\t체크인 시간\n${text}`)
-        .then(() => alert('명단이 클립보드에 복사되었습니다!'))
-        .catch(() => alert('복사 중 오류가 발생했습니다.'));
-    }
-
-    function exportToCSV() {
-      const headers = ['이름', '전화번호', '체크인 여부', '체크인 시간'];
-      const rows = attendees.map(a => [
-        a.name,
-        a.phone || '',
-        a.checkedIn ? '완료' : '미완료',
-        a.checkedInAt || ''
-      ]);
-      
-      const csvContent = [headers, ...rows]
-        .map(row => row.map(field => `"${field}"`).join(','))
-        .join('\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `송년회_참석자명단_${new Date().toISOString().split('T')[0]}.csv`);
-      link.click();
-    }
-
-    async function clearAllData() {
-      if (attendees.length === 0) {
-        alert('초기화할 데이터가 없습니다.');
-        return;
-      }
-
-      // 모바일 친화적 다단계 확인
-      if (!confirm(`🚨 매우 위험한 작업입니다!
-
-다음 데이터가 모두 삭제됩니다:
-• Firebase 참석자 데이터 (${attendees.length}명)
-• 로컬 데이터
-• 체크인 완료: ${attendees.filter(a => a.checkedIn).length}명
-
-이 작업은 되돌릴 수 없습니다!
-
-1단계: 계속하시겠습니까?`)) {
-        return;
-      }
-      
-      if (!confirm(`⚠️ 정말로 확실합니까?
-
-모든 데이터가 영구적으로 삭제됩니다!
-
-2단계: 최종 확인`)) {
-        return;
-      }
-      
-      // 안전 코드 입력 (간단한 4자리 숫자)
-      const safetyCode = Math.floor(1000 + Math.random() * 9000);
-      const userCode = prompt(`🔐 안전 코드 입력
-
-다음 숫자를 입력하세요: ${safetyCode}
-
-입력:`);
-      
-      if (userCode !== String(safetyCode)) {
-        alert('❌ 코드가 일치하지 않습니다. 삭제가 취소되었습니다.');
-        return;
-      }
-
-      try {
-        updateFirebaseStatus('syncing', '🚨 완전 삭제 시작...');
-        
-        // 1. 실시간 리스너 완전 중단 (재생성 방지)
-        if (firebaseUnsubscribe) {
-          console.log('🚫 실시간 리스너 중단');
-          firebaseUnsubscribe();
-          firebaseUnsubscribe = null;
-        }
-        
-        // 2. Firebase 데이터 완전 삭제
-        if (window.firebaseManager) {
-          updateFirebaseStatus('syncing', '🔥 Firebase 데이터 완전 삭제 중...');
-          
-          // 모든 데이터 수집 (실시간 데이터 포함)
-          const allFirebaseData = await window.firebaseManager.getAttendees();
-          console.log(`🗑️ Firebase에서 총 ${allFirebaseData.length}개 데이터 발견`);
-          
-          // 모든 데이터 개별 삭제
-          for (const item of allFirebaseData) {
             try {
-              await window.firebaseManager.deleteAttendee(item.id);
-              console.log(`❌ 삭제 완료: ${item.name} (${item.id})`);
-            } catch (deleteError) {
-              console.error(`⚠️ 삭제 실패: ${item.name}`, deleteError);
+                // Firebase에 추가
+                if (window.firebaseManager) {
+                    await window.firebaseManager.addAttendee(attendee);
+                    console.log('Firebase에 추가됨');
+                }
+
+                // 입력 필드 초기화
+                nameInput.value = '';
+                phoneInput.value = '';
+                nameInput.focus();
+            } catch (error) {
+                console.error('추가 실패:', error);
+                alert('참석자 추가에 실패했습니다.');
             }
-          }
-          
-          // 삭제 후 재확인
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 2초 대기
-          const remainingData = await window.firebaseManager.getAttendees();
-          
-          if (remainingData.length > 0) {
-            console.warn(`⚠️ 여전히 ${remainingData.length}개 데이터가 남아있습니다! 2차 삭제 시도...`);
-            
-            // 2차 삭제 시도
-            for (const item of remainingData) {
-              try {
-                await window.firebaseManager.deleteAttendee(item.id);
-                console.log(`❌ 2차 삭제: ${item.name}`);
-              } catch (error) {
-                console.error(`❌ 2차 삭제 실패: ${item.name}`, error);
-              }
+        }
+
+        // 참석자 삭제
+        async function deleteAttendee(id) {
+            if (!confirm('정말로 삭제하시겠습니까?')) return;
+
+            try {
+                if (window.firebaseManager) {
+                    await window.firebaseManager.deleteAttendee(id);
+                    console.log('삭제됨');
+                }
+            } catch (error) {
+                console.error('삭제 실패:', error);
+                alert('삭제에 실패했습니다.');
             }
-          }
         }
 
-        // 3. localStorage 완전 생소
-        attendees = [];
-        localStorage.clear(); // 모든 localStorage 데이터 삭제
-        
-        // 4. 삭제 방지 플래그 설정
-        localStorage.setItem('firebase_migrated', 'true');
-        localStorage.setItem('data_cleared_at', new Date().toISOString());
-        localStorage.setItem('prevent_auto_restore', 'true');
-        
-        // 5. UI 완전 초기화
-        renderAttendees();
-        updateStats();
-        
-        updateFirebaseStatus('offline', '🚨 완전 삭제 완료 - 리스너 중단');
-        
-        alert('✅ 모든 데이터가 완전히 삭제되었습니다!\n\n🚫 실시간 동기화가 중단되었습니다.\n다시 사용하려면 페이지를 새로고침하세요.');
-        
-        // 6. 선택적 새로고침
-        if (confirm('🔄 완전한 삭제를 위해 페이지를 새로고침하시겠습니까?\n추천: 예')) {
-          window.location.reload(true);
+        // 체크인 토글
+        async function toggleCheckin(id) {
+            try {
+                const attendee = attendees.find(a => a.id === id);
+                if (!attendee) return;
+
+                const newStatus = !attendee.checkedIn;
+                const updateData = {
+                    checkedIn: newStatus,
+                    checkedInAt: newStatus ? new Date().toISOString() : ''
+                };
+
+                if (window.firebaseManager) {
+                    await window.firebaseManager.updateAttendee(id, updateData);
+                    console.log('체크인 상태 변경됨');
+                }
+            } catch (error) {
+                console.error('체크인 실패:', error);
+                alert('체크인 변경에 실패했습니다.');
+            }
         }
-        
-      } catch (error) {
-        console.error('전체 데이터 삭제 오류:', error);
-        updateFirebaseStatus('offline', '❌ 삭제 실패');
-        alert(`삭제 중 오류 발생: ${error.message}\n\n🔄 페이지를 새로고침하고 다시 시도해주세요.`);
-      }
-    }
 
-    function clearCache() {
-      // 모바일 친화적 진행
-      if (!confirm(`🧹 캐시 완전 초기화
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('totalCount').textContent = attendees.length;
+            document.getElementById('checkedInCount').textContent = 
+                attendees.filter(a => a.checkedIn).length;
 
-다음이 모두 삭제됩니다:
-- 브라우저 캐시
-- localStorage 데이터
-- 세션 데이터
-- 임시 파일
+            const listElement = document.getElementById('attendeeList');
+            if (attendees.length === 0) {
+                listElement.innerHTML = '<div class="text-gray-400 text-center py-8">참석자가 없습니다.</div>';
+                return;
+            }
 
-⚠️ 이 작업 후 페이지가 새로고침됩니다!
+            // 이름순 정렬
+            const sortedAttendees = [...attendees].sort((a, b) => a.name.localeCompare(b.name));
 
-정말로 캐시를 초기화하시겠습니까?`)) {
-        return;
-      }
-      
-      // 안전 코드로 2차 확인
-      const clearCode = Math.floor(100 + Math.random() * 900); // 3자리 숫자
-      const userClearCode = prompt(`🔐 확인 코드 입력
+            listElement.innerHTML = sortedAttendees.map(attendee => `
+                <div class="bg-white bg-opacity-5 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex-grow">
+                        <div class="flex items-center gap-3">
+                            <span class="text-white font-semibold">${attendee.name}</span>
+                            ${attendee.checkedIn ? 
+                                '<span class="bg-green-600 text-white px-2 py-1 rounded-full text-xs">✓ 체크인</span>' :
+                                '<span class="bg-gray-600 text-white px-2 py-1 rounded-full text-xs">대기</span>'
+                            }
+                        </div>
+                        ${attendee.phone ? `<div class="text-gray-300 text-sm mt-1">${attendee.phone}</div>` : ''}
+                    </div>
+                    <div class="flex gap-2">
+                        <button 
+                            onclick="toggleCheckin('${attendee.id}')" 
+                            class="px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                attendee.checkedIn 
+                                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                            }">
+                            ${attendee.checkedIn ? '체크아웃' : '체크인'}
+                        </button>
+                        <button 
+                            onclick="deleteAttendee('${attendee.id}')" 
+                            class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium transition-colors">
+                            삭제
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-다음 숫자를 입력하세요: ${clearCode}
+        // 클립보드 복사
+        function copyToClipboard() {
+            if (attendees.length === 0) {
+                alert('복사할 참석자가 없습니다.');
+                return;
+            }
 
-입력:`);
-      
-      if (userClearCode !== String(clearCode)) {
-        alert('❌ 코드가 일치하지 않습니다. 초기화가 취소되었습니다.');
-        return;
-      }
-      
-      if (true) {
-        try {
-          // 1. 전체 localStorage 완전 클리어 (복원 안함)
-          localStorage.clear();
-          
-          // 2. 새로운 캐시 버전 설정 (캐시 삭제용만)
-          const newVersion = Date.now().toString();
-          localStorage.setItem('cacheVersion', newVersion);
-          localStorage.setItem('forceReload', 'true');
-          
-          // 3. 세션 스토리지 클리어
-          sessionStorage.clear();
-          sessionStorage.setItem('pageVersion', newVersion);
-          
-          // 4. 서비스 워커 완전 제거
-          if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-              registrations.forEach(function(registration) {
-                registration.unregister();
-              });
+            const text = attendees
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(a => `${a.name}${a.phone ? ` (${a.phone})` : ''} ${a.checkedIn ? '✓' : '○'}`)
+                .join('\n');
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('클립보드에 복사되었습니다!');
             });
-          }
-          
-          // 5. 브라우저 캐시 완전 삭제
-          if ('caches' in window) {
-            caches.keys().then(function(names) {
-              names.forEach(function(name) {
-                caches.delete(name);
-              });
-            });
-          }
-          
-          // 6. 쿠키 삭제 시도
-          document.cookie.split(";").forEach(function(c) { 
-            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
-          });
-          
-          alert('✅ 캐시가 완전히 초기화되었습니다!\n\n⚠️ 모든 데이터도 함께 삭제되었습니다.\n\n📱 모바일에서도:\n1. 브라우저 설정 > 캐시 삭제\n2. 또는 시크릿/사생활 보호 모드로 접속하세요.');
-          
-          // 7. URL에 타임스탬프 추가하여 강제 리로드
-          const url = new URL(window.location.href);
-          url.searchParams.set('_t', Date.now());
-          window.location.href = url.toString();
-          
-        } catch (error) {
-          console.error('캐시 클리어 중 오류:', error);
-          alert('❌ 캐시 클리어 중 오류가 발생했습니다.\n수동으로 브라우저 설정에서 캐시를 삭제해주세요.');
         }
-      }
-    }
 
-    // 정상적인 완전 삭제 (권장)
-    async function forceDeleteAll() {
-      if (!confirm('🧹 정상적인 완전 삭제\n\n모든 데이터를 깔끔하게 삭제합니다.\n계속하시겠습니까?')) {
-        return;
-      }
-      
-      const confirmCode = Math.floor(100 + Math.random() * 900);
-      const userCode = prompt(`확인 코드: ${confirmCode}\n\n입력:`);
-      
-      if (userCode !== String(confirmCode)) {
-        alert('❌ 코드 불일치. 취소되었습니다.');
-        return;
-      }
-      
-      try {
-        updateFirebaseStatus('syncing', '🧹 정상 삭제 중...');
-        
-        // 1. 리스너 정리
-        if (firebaseUnsubscribe) {
-          firebaseUnsubscribe();
-          firebaseUnsubscribe = null;
+        // CSV 내보내기
+        function exportToCSV() {
+            if (attendees.length === 0) {
+                alert('내보낼 데이터가 없습니다.');
+                return;
+            }
+
+            const header = '이름,전화번호,체크인상태,체크인시간\n';
+            const rows = attendees
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(a => `"${a.name}","${a.phone || ''}","${a.checkedIn ? '완료' : '대기'}","${a.checkedInAt || ''}"`)
+                .join('\n');
+
+            const csv = header + rows;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `송년회_참석자명단_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
         }
-        
-        // 2. Firebase 배치 삭제 (정상적인 방법)
-        if (window.firebaseManager) {
-          const allData = await window.firebaseManager.getAttendees();
-          console.log(`📋 ${allData.length}개 데이터 삭제 시작`);
-          
-          // 배치 삭제 (Firebase 권장 방법)
-          const deletePromises = allData.map(item => 
-            window.firebaseManager.deleteAttendee(item.id)
-          );
-          
-          await Promise.all(deletePromises);
-          console.log('✅ Firebase 배치 삭제 완료');
-        }
-        
-        // 3. 로컬 정리
-        attendees = [];
-        localStorage.removeItem('attendees');
-        localStorage.removeItem('attendees_backup');
-        localStorage.setItem('firebase_migrated', 'true');
-        
-        // 4. UI 업데이트
-        renderAttendees();
-        updateStats();
-        updateFirebaseStatus('online', '✅ 정상 삭제 완료');
-        
-        alert('✅ 모든 데이터가 정상적으로 삭제되었습니다.');
-        
-      } catch (error) {
-        console.error('삭제 오류:', error);
-        updateFirebaseStatus('offline', '❌ 삭제 실패');
-        alert(`삭제 중 오류: ${error.message}`);
-      }
-    }
 
-    // 샘플 데이터 생성 (개발/테스트용)
-    // 정상적이고 간단한 샘플 데이터 생성
-    async function generateSampleData() {
-      const sampleCount = prompt('생성할 샘플 데이터 개수를 입력하세요 (1-20):', '5');
-      
-      if (!sampleCount || isNaN(sampleCount)) {
-        alert('취소되었습니다.');
-        return;
-      }
-      
-      const count = Math.min(Math.max(parseInt(sampleCount), 1), 20);
-      
-      if (!confirm(`${count}명의 샘플 참석자 데이터를 생성하시겠습니까?`)) {
-        return;
-      }
-      
-      // 간단한 중복 생성 방지
-      if (window.generating) {
-        alert('이미 생성 중입니다.');
-        return;
-      }
-      
-      try {
-        window.generating = true;
-        updateFirebaseStatus('syncing', `🎭 ${count}명 생성 중...`);
-        
-        // Firebase 연결 확인
-        if (!window.firebaseManager) {
-          throw new Error('Firebase 연결이 필요합니다');
-        }
-        
-        // 간단한 샘플 데이터 생성 (정상적인 방법)
-        const names = ['김철수', '이영희', '박민수', '최지영', '정현우', '강서연', '임동현', '한미영'];
-        const companies = ['삼성전자', 'LG전자', '현대자동차', 'SK하이닉스', 'NAVER', '카카오'];
-        
-        for (let i = 0; i < count; i++) {
-          const name = names[i % names.length] + (Math.floor(i / names.length) + 1);
-          const phone = `010-${String(1000 + i).padStart(4, '0')}-${String(5000 + i).padStart(4, '0')}`;
-          const company = companies[i % companies.length];
-          
-          const sampleData = {
-            name: name,
-            phone: phone, 
-            company: company,
-            companions: Math.floor(Math.random() * 3),
-            message: `안녕하세요! ${name}입니다.`,
-            checkedIn: true,
-            dataType: 'SAMPLE_DATA',
-            timestamp: new Date()
-          };
-          
-          // Firebase에 추가 (실시간 리스너가 자동으로 UI 업데이트)
-          await window.firebaseManager.addAttendee(sampleData);
-          
-          // 간단한 진행률 표시
-          if (i % 2 === 0) {
-            updateFirebaseStatus('syncing', `🎭 생성 중... ${i + 1}/${count}`);
-          }
-        }
-        
-        updateFirebaseStatus('online', `✅ ${count}명 생성 완료`);
-        alert(`✅ ${count}명의 샘플 데이터가 생성되었습니다!`);
-        
-      } catch (error) {
-        console.error('샘플 데이터 생성 오류:', error);
-        updateFirebaseStatus('offline', '❌ 생성 실패');
-        alert(`오류: ${error.message}`);
-      } finally {
-        window.generating = false;
-      }
-    }
+        // 샘플 데이터 생성
+        async function generateSampleData() {
+            const count = parseInt(prompt('생성할 샘플 데이터 개수를 입력하세요:', '5'));
+            if (isNaN(count) || count <= 0) return;
 
-    // 행사 당일 데이터 공유 기능
-    function exportDataForSharing() {
-      if (attendees.length === 0) {
-        alert('공유할 데이터가 없습니다.');
-        return;
-      }
-      
-      const dataToShare = {
-        attendees: attendees,
-        exportTime: new Date().toLocaleString('ko-KR'),
-        version: 'v2.1.0'
-      };
-      
-      const dataString = JSON.stringify(dataToShare, null, 2);
-      
-      // 클립보드에 복사
-      navigator.clipboard.writeText(dataString).then(() => {
-        alert(`📋 데이터가 클립보드에 복사되었습니다!\n\n📊 총 ${attendees.length}명의 데이터\n⏰ ${dataToShare.exportTime}\n\n다른 디바이스에서 "데이터 가져오기"를 사용하여 붙여넣으세요.`);
-      }).catch(() => {
-        // 클립보드 실패 시 텍스트 영역에 표시
-        const textarea = document.createElement('textarea');
-        textarea.value = dataString;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        
-        alert('📋 데이터가 클립보드에 복사되었습니다!\n(수동 복사 방식으로 처리됨)');
-      });
-    }
-
-    function importSharedData() {
-      const dataString = prompt('다른 디바이스에서 복사한 데이터를 붙여넣으세요:\n\n(전체 JSON 데이터를 붙여넣어주세요)');
-      
-      if (!dataString) return;
-      
-      try {
-        const importedData = JSON.parse(dataString);
-        
-        if (!importedData.attendees || !Array.isArray(importedData.attendees)) {
-          throw new Error('올바르지 않은 데이터 형식입니다.');
-        }
-        
-        const importCount = importedData.attendees.length;
-        const exportTime = importedData.exportTime || '알 수 없음';
-        
-        if (confirm(`데이터를 가져오시겠습니까?\n\n📊 가져올 데이터: ${importCount}명\n⏰ 내보낸 시간: ${exportTime}\n\n⚠️ 현재 데이터(${attendees.length}명)가 덮어쓰여집니다!`)) {
-          attendees = importedData.attendees;
-          saveAttendees();
-          
-          // 캐시 버전 업데이트로 다른 페이지 동기화
-          localStorage.setItem('cacheVersion', Date.now().toString());
-          
-          renderAttendees();
-          updateStats();
-          
-          alert(`✅ 데이터 가져오기 완료!\n\n📊 총 ${importCount}명의 데이터가 로드되었습니다.\n⏰ 원본 시간: ${exportTime}`);
-        }
-        
-      } catch (error) {
-        alert('❌ 데이터 형식이 올바르지 않습니다.\n\n올바른 JSON 형식의 데이터를 붙여넣어주세요.');
-        console.error('데이터 가져오기 오류:', error);
-      }
-    }
-
-    // Enter 키로 추가 기능
-    document.getElementById('newName').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') addAttendee();
-    });
-    
-    document.getElementById('newPhone').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') addAttendee();
-    });
-
-    // 강력한 캐시 버전 체크 및 새로고침 기능
-    function checkCacheVersion() {
-      const currentVersion = localStorage.getItem('cacheVersion');
-      const pageVersion = sessionStorage.getItem('pageVersion');
-      const forceReload = localStorage.getItem('forceReload');
-      
-      // 강제 리로드 플래그가 있으면 즉시 리로드
-      if (forceReload === 'true') {
-        localStorage.removeItem('forceReload');
-        const url = new URL(window.location.href);
-        url.searchParams.set('_cache', Date.now());
-        window.location.replace(url.toString());
-        return;
-      }
-      
-      if (currentVersion && currentVersion !== pageVersion) {
-        sessionStorage.setItem('pageVersion', currentVersion);
-        console.log('캐시 업데이트 감지 - 데이터 새로고침');
-        // 데이터 새로고침
-        updateDataAndUI();
-      }
-    }
-
-    // 데이터 업데이트 및 새로고침
-    function updateDataAndUI() {
-      loadAttendees();
-      renderAttendees();
-      updateStats();
-    }
-
-    // 교가 모달 토글 기능
-    function toggleSchoolSong() {
-        const modal = document.getElementById('schoolSongModal');
-        if (modal) {
-            modal.classList.toggle('hidden');
+            const sampleNames = ['김철수', '이영희', '박민수', '정수연', '최동우', '한미래', '송지원', '강태현', '오하늘', '임바다'];
             
-            // 모달이 열릴 때 모바일 메뉴 닫기
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (!modal.classList.contains('hidden') && mobileMenu) {
-                mobileMenu.classList.add('hidden');
-                const hamburgerBtn = document.getElementById('hamburger-btn');
-                if (hamburgerBtn) {
-                    const svg = hamburgerBtn.querySelector('svg path');
-                    if (svg) {
-                        svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+            try {
+                for (let i = 0; i < count; i++) {
+                    const name = sampleNames[i % sampleNames.length] + (i >= sampleNames.length ? ` ${Math.floor(i / sampleNames.length) + 1}` : '');
+                    const phone = `010-${String(Math.floor(Math.random() * 9000) + 1000)}-${String(Math.floor(Math.random() * 9000) + 1000)}`;
+                    
+                    const attendee = {
+                        id: Date.now().toString() + i,
+                        name,
+                        phone,
+                        checkedIn: Math.random() > 0.7, // 30% 체크인
+                        timestamp: new Date().toISOString()
+                    };
+
+                    if (attendee.checkedIn) {
+                        attendee.checkedInAt = new Date().toISOString();
+                    }
+
+                    if (window.firebaseManager) {
+                        await window.firebaseManager.addAttendee(attendee);
                     }
                 }
+                alert(`${count}개의 샘플 데이터가 생성되었습니다.`);
+            } catch (error) {
+                console.error('샘플 생성 실패:', error);
+                alert('샘플 데이터 생성에 실패했습니다.');
             }
         }
-    }
 
-    // 모달 외부 클릭 시 닫기
-    document.addEventListener('click', function(event) {
-        const modal = document.getElementById('schoolSongModal');
-        const modalContent = modal?.querySelector('.bg-white');
-        
-        if (modal && !modal.classList.contains('hidden') && 
-            event.target === modal && !modalContent?.contains(event.target)) {
-            toggleSchoolSong();
-        }
-    });
+        // 전체 삭제
+        async function confirmCompleteReset() {
+            if (attendees.length === 0) {
+                alert('삭제할 데이터가 없습니다.');
+                return;
+            }
 
-    // 햄버거 메뉴 토글 기능
-    function initializeHamburgerMenu() {
-        const hamburgerBtn = document.getElementById('hamburger-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        if (hamburgerBtn && mobileMenu) {
-            hamburgerBtn.addEventListener('click', function() {
-                mobileMenu.classList.toggle('hidden');
-                
-                // 아이콘 변경 (햄버거 <-> X)
-                const svg = hamburgerBtn.querySelector('svg path');
-                if (mobileMenu.classList.contains('hidden')) {
-                    svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
-                } else {
-                    svg.setAttribute('d', 'M6 18L18 6M6 6l12 12');
-                }
-            });
-            
-            // 모바일 메뉴 링크 클릭 시 메뉴 닫기
-            const mobileLinks = mobileMenu.querySelectorAll('a');
-            mobileLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    mobileMenu.classList.add('hidden');
-                    const svg = hamburgerBtn.querySelector('svg path');
-                    svg.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
-                });
-            });
-        }
-    }
-    
-    // 페이지 로드 시 실행
-    window.addEventListener('load', function() {
-        // Firebase 초기화 및 데이터 로드
-        loadAttendees();
-        
-        // 네트워크 상태 모니터링
-        window.addEventListener('online', () => {
-          if (window.firebaseManager) {
-            updateFirebaseStatus('online', `✅ 온라인 (${attendees.length}명)`);
-          }
-        });
-        
-        window.addEventListener('offline', () => {
-          updateFirebaseStatus('offline', `⚠️ 오프라인 (${attendees.length}명)`);
-        });
-        
-        // 햄버거 메뉴 초기화
-        initializeHamburgerMenu();
-        // 초기 캐시 버전 설정
-        if (!sessionStorage.getItem('pageVersion')) {
-          sessionStorage.setItem('pageVersion', Date.now().toString());
-        }
-        
-        updateDataAndUI();
-      
-      // 주기적으로 캐시 버전 체크 (관리자 페이지는 더 자주)
-      setInterval(checkCacheVersion, 2000);
-      checkCacheVersion();
-      
-      // 주기적으로 캐시 체크
-      setInterval(checkCacheVersion, 5000);
-    });
-
-    // 전체 삭제 확인 및 실행 함수
-    async function confirmCompleteReset() {
-      if (attendees.length === 0) {
-        alert('삭제할 데이터가 없습니다.');
-        return;
-      }
-
-      // 1단계: 기본 확인
-      if (!confirm(`⚠️ 전체 삭제
+            // 1단계: 기본 확인
+            if (!confirm(`⚠️ 전체 삭제
 
 현재 ${attendees.length}명의 참석자 데이터가 모두 삭제됩니다.
 
 계속하시겠습니까?`)) {
-        return;
-      }
-      
-      // 2단계: 최종 확인 (안전 코드)
-      const safetyCode = Math.floor(1000 + Math.random() * 9000);
-      const userInput = prompt(`🔐 최종 확인
+                return;
+            }
+            
+            // 2단계: 최종 확인 (안전 코드)
+            const safetyCode = Math.floor(1000 + Math.random() * 9000);
+            const userInput = prompt(`🔐 최종 확인
 
 안전을 위해 다음 숫자를 입력하세요:
 ${safetyCode}`);
-      
-      if (userInput !== String(safetyCode)) {
-        alert('❌ 코드가 일치하지 않습니다. 삭제가 취소되었습니다.');
-        return;
-      }
+            
+            if (userInput !== String(safetyCode)) {
+                alert('❌ 코드가 일치하지 않습니다. 삭제가 취소되었습니다.');
+                return;
+            }
 
-      // 3단계: 완전 삭제 실행
-      try {
-        updateFirebaseStatus('syncing', '🗑️ 전체 삭제 중...');
-        
-        // Firebase 데이터 삭제
-        if (window.firebaseManager) {
-          await window.firebaseManager.clearAllAttendees();
+            // 3단계: 완전 삭제 실행
+            try {
+                // Firebase 데이터 삭제
+                if (window.firebaseManager) {
+                    await window.firebaseManager.clearAllAttendees();
+                }
+                
+                // 로컬 데이터 삭제
+                attendees = [];
+                localStorage.removeItem('attendees');
+                
+                // UI 업데이트
+                updateUI();
+                
+                alert('✅ 모든 데이터가 완전히 삭제되었습니다.');
+            } catch (error) {
+                console.error('삭제 중 오류:', error);
+                alert('❌ 삭제 중 오류가 발생했습니다.');
+            }
         }
-        
-        // 로컬 데이터 삭제
-        attendees = [];
-        localStorage.removeItem('attendees');
-        localStorage.removeItem('tempCheckins');
-        
-        // UI 업데이트
-        updateDataAndUI();
-        updateFirebaseStatus('online', '✅ 삭제 완료 (0명)');
-        
-        alert('✅ 모든 데이터가 완전히 삭제되었습니다.');
-      } catch (error) {
-        console.error('삭제 중 오류:', error);
-        updateFirebaseStatus('error', '❌ 삭제 실패');
-        alert('❌ 삭제 중 오류가 발생했습니다.');
-      }
-    }
-    
-    // 빠른 액션 버튼 기능들
-    
-    // 전체 데이터 새로고침
-    async function refreshAllData() {
-      try {
-        updateFirebaseStatus('syncing', '🔄 새로고침 중...');
-        
-        if (window.firebaseManager) {
-          // Firebase 데이터 다시 로드
-          const freshData = await window.firebaseManager.getAttendees();
-          attendees = freshData.map(a => ({
-            id: a.id,
-            name: a.name || '',
-            phone: a.phone || '',
-            checkedIn: a.checkedIn || false,
-            checkedInAt: a.checkedInAt || '',
-            timestamp: a.timestamp
-          }));
-          
-          sortAttendees();
-          updateFirebaseStatus('online', `✅ 새로고침 완료 (${attendees.length}명)`);
-          
-          // 성공 알림
-          const notification = document.createElement('div');
-          notification.className = 'fixed top-20 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-          notification.textContent = `✅ ${attendees.length}명의 데이터가 새로고침되었습니다.`;
-          document.body.appendChild(notification);
-          
-          setTimeout(() => {
-            notification.style.opacity = '0';
-            setTimeout(() => document.body.removeChild(notification), 300);
-          }, 3000);
-          
-        } else {
-          throw new Error('Firebase Manager가 연결되지 않았습니다');
+
+        // Firebase 데이터 로드
+        async function loadAttendees() {
+            try {
+                if (!window.firebaseManager) {
+                    console.log('Firebase Manager 초기화 중...');
+                    return;
+                }
+
+                // 실시간 리스너 설정
+                firebaseUnsubscribe = window.firebaseManager.listenToAttendees((data) => {
+                    attendees = data;
+                    updateUI();
+                });
+
+                console.log('Firebase 연결 성공');
+            } catch (error) {
+                console.error('Firebase 로드 실패:', error);
+            }
         }
-      } catch (error) {
-        console.error('데이터 새로고침 오류:', error);
-        updateFirebaseStatus('offline', '❌ 새로고침 실패');
-        alert(`새로고침 실패: ${error.message}`);
-      }
-    }
 
-    // 빠른 통계 표시
-    function showQuickStats() {
-      const total = attendees.length;
-      const checkedIn = attendees.filter(a => a.checkedIn).length;
-      const pending = total - checkedIn;
-      const checkInRate = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
-      
-      // 데이터 타입별 분류 (Firebase 연동 후 태그 정보 활용)
-      const realData = attendees.filter(a => a.dataType === 'REAL_DATA').length;
-      const sampleData = attendees.filter(a => a.dataType === 'SAMPLE_DATA').length;
-      const otherData = total - realData - sampleData;
-      
-      // 오늘 체크인한 사람들
-      const today = new Date().toDateString();
-      const todayCheckins = attendees.filter(a => {
-        if (!a.checkedInAt) return false;
-        const checkinDate = new Date(a.checkedInAt).toDateString();
-        return checkinDate === today && a.checkedIn;
-      }).length;
+        // 엔터키 이벤트
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('newName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const phoneInput = document.getElementById('newPhone');
+                    if (phoneInput.value.trim()) {
+                        addAttendee();
+                    } else {
+                        phoneInput.focus();
+                    }
+                }
+            });
 
-      const statsMessage = `
-📊 실시간 참석 현황
+            document.getElementById('newPhone').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addAttendee();
+                }
+            });
+        });
 
-👥 총 참석자: ${total}명
-✅ 체크인 완료: ${checkedIn}명 (${checkInRate}%)
-⏰ 대기 중: ${pending}명
-
-📈 데이터 구성
-• 실제 데이터: ${realData}명
-• 샘플 데이터: ${sampleData}명  
-• 기타 데이터: ${otherData}명
-
-📅 오늘 체크인: ${todayCheckins}명
-
-🔥 Firebase 연결: ${window.firebaseManager ? '정상' : '오류'}
-💾 로컬 백업: ${localStorage.getItem('attendees') ? '있음' : '없음'}
-
-최종 업데이트: ${new Date().toLocaleString('ko-KR')}
-      `;
-
-      alert(statsMessage);
-    }
-
-    // 향상된 명단 내보내기
-    function exportAttendees() {
-      if (attendees.length === 0) {
-        alert('내보낼 데이터가 없습니다.');
-        return;
-      }
-
-      try {
-        // CSV 형식으로 데이터 준비
-        const csvHeader = '번호,이름,연락처,체크인여부,체크인시간,데이터타입,등록시간\n';
-        const csvContent = attendees.map((attendee, index) => {
-          return [
-            index + 1,
-            `"${attendee.name || ''}"`,
-            `"${attendee.phone || ''}"`,
-            attendee.checkedIn ? '체크인완료' : '대기중',
-            `"${attendee.checkedInAt || '-'}"`,
-            attendee.dataType === 'REAL_DATA' ? '실제데이터' : 
-            attendee.dataType === 'SAMPLE_DATA' ? '샘플데이터' : '기타',
-            `"${attendee.timestamp ? new Date(attendee.timestamp).toLocaleString('ko-KR') : '-'}"`
-          ].join(',');
-        }).join('\n');
-
-        const fullCsv = csvHeader + csvContent;
-        
-        // BOM 추가 (한글 깨짐 방지)
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + fullCsv], { type: 'text/csv;charset=utf-8;' });
-        
-        // 파일 다운로드
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        
-        const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
-        const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '');
-        link.setAttribute('download', `오산고71회_송년회_참석명단_${dateStr}_${timeStr}.csv`);
-        
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // 성공 메시지
-        alert(`📤 참석자 명단이 다운로드되었습니다!\n\n총 ${attendees.length}명의 데이터가 포함되었습니다.`);
-        
-      } catch (error) {
-        console.error('명단 내보내기 오류:', error);
-        alert(`내보내기 실패: ${error.message}`);
-      }
-    }
-
-    // Firebase만 초기화 (localStorage는 유지)
-    async function clearFirebaseOnly() {
-      if (!window.firebaseManager) {
-        alert('Firebase가 연결되지 않았습니다.');
-        return;
-      }
-
-      const firebaseCount = attendees.length;
-      
-      // 모바일 친화적 확인
-      if (!confirm(`🔥 Firebase 데이터만 초기화\n\nFirebase의 모든 참석자 데이터가 삭제됩니다:\n• 총 ${firebaseCount}명의 Firebase 데이터\n• 체크인 완료: ${attendees.filter(a => a.checkedIn).length}명\n\n⚠️ localStorage 데이터는 유지됩니다\n⚠️ 이 작업은 되돌릴 수 없습니다!\n\n정말로 Firebase만 초기화하시겠습니까?`)) {
-        return;
-      }
-      
-      // 안전 코드 확인
-      const firebaseCode = Math.floor(100 + Math.random() * 900);
-      const userFirebaseCode = prompt(`🔒 Firebase 삭제 확인\n\n다음 숫자를 입력하세요: ${firebaseCode}\n\n입력:`);
-      
-      if (userFirebaseCode !== String(firebaseCode)) {
-        alert('❌ 코드가 일치하지 않습니다. Firebase 삭제가 취소되었습니다.');
-        return;
-      }
-
-      try {
-        updateFirebaseStatus('syncing', '🔄 Firebase 데이터 삭제 중...');
-        
-        const firebaseAttendees = await window.firebaseManager.getAttendees();
-        let deleteCount = 0;
-        
-        for (const attendee of firebaseAttendees) {
-          await window.firebaseManager.deleteAttendee(attendee.id);
-          deleteCount++;
+        // 데이터 새로고침
+        async function refreshAllData() {
+            try {
+                console.log('🔄 데이터 새로고침 시작...');
+                
+                if (window.firebaseManager) {
+                    // Firebase에서 직접 데이터 가져오기
+                    const freshData = await window.firebaseManager.getAttendees();
+                    attendees = freshData.map(a => ({
+                        id: a.id,
+                        name: a.name || '',
+                        phone: a.phone || '',
+                        checkedIn: a.checkedIn || false,
+                        checkedInAt: a.checkedInAt || '',
+                        timestamp: a.timestamp
+                    }));
+                    
+                    updateUI();
+                    
+                    // 성공 알림
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                    notification.textContent = `✅ ${attendees.length}명의 데이터가 새로고침되었습니다.`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        notification.style.opacity = '0';
+                        setTimeout(() => notification.remove(), 300);
+                    }, 2000);
+                } else {
+                    alert('❌ Firebase 연결이 없습니다.');
+                }
+            } catch (error) {
+                console.error('새로고침 실패:', error);
+                alert('❌ 데이터 새로고침에 실패했습니다.');
+            }
         }
-        
-        updateFirebaseStatus('online', '✅ Firebase 초기화 완료');
-        alert(`✅ Firebase에서 ${deleteCount}개의 데이터가 삭제되었습니다.\n\n💾 localStorage 데이터는 유지됩니다.`);
-        
-        // Firebase 데이터가 삭제되면 localStorage 데이터로 화면 업데이트
-        loadAttendeesFromLocalStorage();
-        
-      } catch (error) {
-        console.error('Firebase 데이터 삭제 오류:', error);
-        updateFirebaseStatus('offline', '❌ 삭제 실패');
-        alert(`Firebase 삭제 중 오류 발생: ${error.message}`);
-      }
-    }
 
-    // 페이지 종료 시 Firebase 리스너 정리
-    window.addEventListener('beforeunload', function() {
-      if (firebaseUnsubscribe) {
-        firebaseUnsubscribe();
-        console.log('🔥 Firebase 리스너 해제됨');
-      }
-    });
-  </script>
+        // 빠른 통계 보기
+        function showQuickStats() {
+            if (attendees.length === 0) {
+                alert('통계를 보여줄 데이터가 없습니다.');
+                return;
+            }
+
+            const checkedInAttendees = attendees.filter(a => a.checkedIn);
+            const waitingAttendees = attendees.filter(a => !a.checkedIn);
+            
+            // 시간대별 체크인 분석 (체크인된 사람들만)
+            const checkinTimes = checkedInAttendees
+                .filter(a => a.checkedInAt)
+                .map(a => new Date(a.checkedInAt).getHours())
+                .sort((a, b) => a - b);
+            
+            let timeAnalysis = '';
+            if (checkinTimes.length > 0) {
+                const earliest = Math.min(...checkinTimes);
+                const latest = Math.max(...checkinTimes);
+                timeAnalysis = `
+⏰ 체크인 시간대:
+• 가장 빠른 체크인: ${earliest}시
+• 가장 늦은 체크인: ${latest}시`;
+            }
+
+            const statsMessage = `📊 빠른 통계
+
+👥 전체 참석자: ${attendees.length}명
+✅ 체크인 완료: ${checkedInAttendees.length}명
+⏳ 대기 중: ${waitingAttendees.length}명
+
+📊 체크인률: ${attendees.length > 0 ? Math.round((checkedInAttendees.length / attendees.length) * 100) : 0}%${timeAnalysis}`;
+            
+            alert(statsMessage);
+        }
+
+        // 페이지 로드 시 실행
+        window.addEventListener('load', function() {
+            loadAttendees();
+        });
+    </script>
 </body>
 </html>

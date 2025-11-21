@@ -1,1000 +1,204 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>데이터 상태 확인 - 오산고 71회 동기 송년회</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Firebase SDK & Config -->
-  <script type="module">
-    // Firebase 설정 파일 로드
-    import('./js/firebase-config.js')
-      .then(() => {
-        console.log('✅ Firebase 설정 로드 완료');
-        // Firebase Manager 사용 가능 확인
-        setTimeout(() => {
-          if (window.firebaseManager) {
-            console.log('🔥 Firebase Manager 준비됨');
-            window.dispatchEvent(new CustomEvent('firebaseReady', { 
-              detail: { firebaseManager: window.firebaseManager } 
-            }));
-          }
-        }, 1000);
-      })
-      .catch(error => {
-        console.error('❌ Firebase 설정 로드 실패:', error);
-        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">모듈 로드 실패: ${error.message}</span>`;
-      });
-  </script>
-  
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif; }
-    
-    .data-section {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
-    
-    .json-viewer {
-      background: #1e293b;
-      color: #e2e8f0;
-      padding: 15px;
-      border-radius: 8px;
-      font-family: 'Courier New', monospace;
-      font-size: 12px;
-      white-space: pre-wrap;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #334155;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 디버그 - 오산고 71회 송년회</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/firebase-config.js"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-blue-700 to-slate-900 min-h-screen p-6">
-  
-  <div class="max-w-6xl mx-auto">
-    <h1 class="text-3xl font-bold text-white mb-6 text-center">📊 데이터 상태 확인</h1>
-    
-    <!-- Firebase 연결 상태 -->
-    <div class="data-section">
-      <h2 class="text-xl font-semibold text-white mb-4">🔥 Firebase 연결 상태</h2>
-      <div id="firebaseStatus" class="text-yellow-300">연결 확인 중...</div>
-    </div>
-    
-    <!-- Firebase 데이터 -->
-    <div class="data-section">
-      <h2 class="text-xl font-semibold text-white mb-4">☁️ Firebase 데이터</h2>
-      <button onclick="loadFirebaseData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-3">
-        Firebase 데이터 새로고침
-      </button>
-      <div class="json-viewer" id="firebaseData">데이터를 로드하려면 새로고침 버튼을 클릭하세요.</div>
-    </div>
-    
-    <!-- localStorage 데이터 -->
-    <div class="data-section">
-      <h2 class="text-xl font-semibold text-white mb-4">💾 localStorage 데이터</h2>
-      <button onclick="loadLocalStorageData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mb-3">
-        localStorage 새로고침
-      </button>
-      <div class="json-viewer" id="localStorageData">데이터를 로드하려면 새로고침 버튼을 클릭하세요.</div>
-    </div>
-    
-    <!-- 데이터 통계 -->
-    <div class="data-section">
-      <h2 class="text-xl font-semibold text-white mb-4">📈 데이터 통계</h2>
-      
-      <!-- 기본 통계 -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" id="stats">
-        <div class="bg-blue-800 bg-opacity-50 p-4 rounded-lg text-center">
-          <div class="text-2xl font-bold text-blue-300" id="firebaseCount">-</div>
-          <div class="text-blue-200">Firebase 참석자</div>
-        </div>
-        <div class="bg-green-800 bg-opacity-50 p-4 rounded-lg text-center">
-          <div class="text-2xl font-bold text-green-300" id="localStorageCount">-</div>
-          <div class="text-green-200">localStorage 참석자</div>
-        </div>
-        <div class="bg-purple-800 bg-opacity-50 p-4 rounded-lg text-center">
-          <div class="text-2xl font-bold text-purple-300" id="checkedInCount">-</div>
-          <div class="text-purple-200">체크인 완료</div>
-        </div>
-        <div class="bg-yellow-800 bg-opacity-50 p-4 rounded-lg text-center">
-          <div class="text-2xl font-bold text-yellow-300" id="checkInRate">-</div>
-          <div class="text-yellow-200">체크인률</div>
-        </div>
-      </div>
-      
-      <!-- 상세 분석 -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Firebase 상세 -->
-        <div class="bg-slate-800 bg-opacity-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-white mb-3">🔥 Firebase 상세 분석</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span class="text-slate-300">실제 데이터:</span>
-              <span class="text-green-400 font-semibold" id="firebaseRealCount">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-300">샘플 데이터:</span>
-              <span class="text-yellow-400 font-semibold" id="firebaseSampleCount">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-300">기타 데이터:</span>
-              <span class="text-blue-400 font-semibold" id="firebaseOtherCount">-</span>
-            </div>
-            <div class="border-t border-slate-600 pt-2 mt-2">
-              <div class="flex justify-between">
-                <span class="text-slate-300">체크인 완료:</span>
-                <span class="text-purple-400 font-semibold" id="firebaseCheckedIn">-</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-300">대기 중:</span>
-                <span class="text-orange-400 font-semibold" id="firebasePending">-</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- 시간대별 분석 -->
-        <div class="bg-slate-800 bg-opacity-50 p-4 rounded-lg">
-          <h3 class="text-lg font-semibold text-white mb-3">⏰ 시간대별 분석</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span class="text-slate-300">오늘 체크인:</span>
-              <span class="text-green-400 font-semibold" id="todayCheckins">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-300">최근 1시간:</span>
-              <span class="text-blue-400 font-semibold" id="recentCheckins">-</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-300">평균 간격:</span>
-              <span class="text-yellow-400 font-semibold" id="avgInterval">-</span>
-            </div>
-            <div class="border-t border-slate-600 pt-2 mt-2">
-              <div class="flex justify-between">
-                <span class="text-slate-300">첫 체크인:</span>
-                <span class="text-purple-400 font-semibold" id="firstCheckin">-</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-slate-300">최근 체크인:</span>
-                <span class="text-orange-400 font-semibold" id="lastCheckin">-</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 실시간 업데이트 -->
-      <div class="mt-4 flex justify-between items-center">
-        <span class="text-slate-400 text-sm">마지막 업데이트: <span id="lastUpdate">-</span></span>
-        <button onclick="updateDetailedStats()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">
-          🔄 통계 새로고침
-        </button>
-      </div>
-    </div>
-    
-    <!-- 액션 버튼들 -->
-    <div class="data-section">
-      <h2 class="text-xl font-semibold text-white mb-4">🛠️ 관리 도구</h2>
-      
-      <!-- 데이터 추가/생성 -->
-      <div class="mb-4">
-        <h3 class="text-lg text-white mb-2">📝 데이터 생성</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <button onclick="addSampleData()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded font-semibold">
-            🧪 샘플 데이터 추가 (5명)
-          </button>
-          <button onclick="addRealData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded font-semibold">
-            👥 실제 데이터 추가 (10명)
-          </button>
-        </div>
-      </div>
-      
-      <!-- 데이터 삭제/초기화 -->
-      <div class="mb-4">
-        <h3 class="text-lg text-white mb-2">🗑️ 데이터 삭제</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <button onclick="clearLocalStorage()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded font-semibold">
-            💾 localStorage 초기화
-          </button>
-          <button onclick="clearFirebaseData()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded font-semibold">
-            🔥 Firebase 전체 초기화
-          </button>
-          <button onclick="clearAllData()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-3 rounded font-semibold border-2 border-red-500">
-            ⚠️ 모든 데이터 삭제
-          </button>
-        </div>
-      </div>
-      
-      <!-- 유틸리티 -->
-      <div>
-        <h3 class="text-lg text-white mb-2">🔧 유틸리티</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <button onclick="analyzeData()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded font-semibold">
-            📊 데이터 분석
-          </button>
-          <button onclick="exportAllData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-3 rounded font-semibold">
-            📤 데이터 백업
-          </button>
-          <a href="/admin" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 rounded font-semibold text-center">
-            ⚙️ 관리자 페이지
-          </a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- 경고 메시지 -->
-    <div class="data-section bg-red-900 bg-opacity-30 border-red-500">
-      <h2 class="text-xl font-semibold text-red-300 mb-4">⚠️ 중요 경고</h2>
-      <div class="text-red-200 space-y-2 text-sm">
-        <p>• <strong>Firebase 전체 초기화</strong>: 모든 참석자 데이터가 영구적으로 삭제됩니다</p>
-        <p>• <strong>실제 데이터</strong>: 테스트가 아닌 실제 행사용 데이터입니다</p>
-        <p>• <strong>샘플 데이터</strong>: 테스트 목적으로만 사용하세요</p>
-        <p>• 삭제된 데이터는 복구할 수 없으니 신중하게 사용하세요</p>
-      </div>
-    </div>
-  </div>
+<body class="bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 헤더 -->
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">
+                🔧 시스템 디버그
+            </h1>
+            <p class="text-blue-200">Firebase 연결 상태 및 데이터 확인</p>
+        </header>
 
-  <script>
-    let firebaseManager = null;
+        <!-- Firebase 상태 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-blue-500 mb-6">
+            <h2 class="text-xl font-semibold text-white mb-4">🔥 Firebase 상태</h2>
+            <div id="firebaseStatus" class="text-gray-300">
+                <p>🔄 연결 확인 중...</p>
+            </div>
+        </div>
 
-    // Firebase 연결 확인 (강화된 버전)
-    async function checkFirebaseConnection() {
-      try {
-        document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-yellow-400">Firebase 연결 확인 중...</span>';
-        console.log('🔍 Firebase 연결 확인 시작...');
+        <!-- 데이터 상태 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-green-500 mb-6">
+            <h2 class="text-xl font-semibold text-white mb-4">📊 데이터 상태</h2>
+            <div id="dataStatus" class="text-gray-300">
+                <p>📥 데이터 로딩 중...</p>
+            </div>
+        </div>
+
+        <!-- 참석자 목록 (간단 표시) -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-purple-500 mb-6">
+            <h2 class="text-xl font-semibold text-white mb-4">👥 참석자 목록</h2>
+            <div id="attendeeData" class="text-gray-300">
+                <p>👤 참석자 데이터 로딩 중...</p>
+            </div>
+        </div>
+
+        <!-- 액션 버튼들 -->
+        <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-xl p-6 border border-yellow-500">
+            <h2 class="text-xl font-semibold text-white mb-4">🛠️ 디버그 도구</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <button onclick="refreshData()" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+                    🔄 데이터 새로고침
+                </button>
+                <button onclick="testFirebase()" class="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+                    🧪 Firebase 테스트
+                </button>
+                <button onclick="showLogs()" class="bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors">
+                    📋 로그 보기
+                </button>
+                <a href="/" class="bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-semibold transition-colors text-center">
+                    🏠 메인으로
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let attendees = [];
         
-        // Firebase Manager 로드 대기 (더 안정적인 방식)
-        let retryCount = 0;
-        const maxRetries = 30; // 15초까지 대기
-        
-        while (!window.firebaseManager && retryCount < maxRetries) {
-          console.log(`🕐 Firebase Manager 대기 중... (${retryCount + 1}/${maxRetries})`);
-          document.getElementById('firebaseStatus').innerHTML = 
-            `🔄 <span class="text-yellow-400">Firebase 로딩... ${retryCount + 1}/${maxRetries}</span>`;
-          await new Promise(resolve => setTimeout(resolve, 500));
-          retryCount++;
+        // Firebase 연결 상태 확인
+        function checkFirebaseStatus() {
+            const statusElement = document.getElementById('firebaseStatus');
+            
+            if (window.firebaseManager) {
+                statusElement.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="text-green-400">✅ Firebase Manager 로드됨</p>
+                        <p class="text-blue-400">🔗 데이터베이스 연결 활성</p>
+                        <p class="text-yellow-400">⏰ 실시간 리스너 대기 중</p>
+                    </div>
+                `;
+                loadData();
+            } else {
+                statusElement.innerHTML = `
+                    <div class="space-y-2">
+                        <p class="text-red-400">❌ Firebase Manager 로드 실패</p>
+                        <p class="text-gray-400">🔧 설정 파일을 확인해주세요</p>
+                    </div>
+                `;
+            }
         }
 
-        if (window.firebaseManager) {
-          firebaseManager = window.firebaseManager;
-          console.log('✅ Firebase Manager 연결됨');
-          
-          // 다중 연결 테스트 수행
-          document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-blue-400">Firebase 연결 테스트 중...</span>';
-          
-          let connectionAttempts = 0;
-          const maxAttempts = 3;
-          let connectionOk = false;
-          
-          while (!connectionOk && connectionAttempts < maxAttempts) {
-            connectionAttempts++;
-            console.log(`🔥 Firebase 연결 테스트 시도 ${connectionAttempts}/${maxAttempts}`);
-            
+        // 데이터 로드
+        async function loadData() {
             try {
-              connectionOk = await firebaseManager.testConnection();
-              if (connectionOk) {
-                console.log('✅ Firebase 연결 테스트 성공');
-                break;
-              }
-            } catch (testError) {
-              console.warn(`⚠️ 연결 테스트 ${connectionAttempts} 실패:`, testError);
+                const data = await window.firebaseManager.getAttendees();
+                attendees = data;
+                updateDataStatus();
+                displayAttendees();
+            } catch (error) {
+                document.getElementById('dataStatus').innerHTML = `
+                    <p class="text-red-400">❌ 데이터 로드 실패: ${error.message}</p>
+                `;
             }
+        }
+
+        // 데이터 상태 업데이트
+        function updateDataStatus() {
+            const checkedIn = attendees.filter(a => a.checkedIn).length;
+            document.getElementById('dataStatus').innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>📊 전체 참석자: <span class="text-blue-300 font-bold">${attendees.length}명</span></div>
+                    <div>✅ 체크인 완료: <span class="text-green-300 font-bold">${checkedIn}명</span></div>
+                    <div>⏳ 대기 중: <span class="text-yellow-300 font-bold">${attendees.length - checkedIn}명</span></div>
+                    <div>📈 체크인율: <span class="text-purple-300 font-bold">${attendees.length > 0 ? Math.round((checkedIn/attendees.length)*100) : 0}%</span></div>
+                </div>
+            `;
+        }
+
+        // 참석자 목록 표시
+        function displayAttendees() {
+            const element = document.getElementById('attendeeData');
             
-            if (connectionAttempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
+            if (attendees.length === 0) {
+                element.innerHTML = '<p class="text-gray-400">📝 등록된 참석자가 없습니다.</p>';
+                return;
             }
-          }
-          
-          if (connectionOk && firebaseManager.connectionTested) {
-            document.getElementById('firebaseStatus').innerHTML = '✅ <span class="text-green-400">Firebase 연결 성공 (테스트 완료)</span>';
-            console.log('🎯 Firebase 완전 연결 성공');
-            return true;
-          } else {
-            document.getElementById('firebaseStatus').innerHTML = 
-              `⚠️ <span class="text-yellow-400">Firebase 연결 불안정 (${connectionAttempts}/${maxAttempts} 시도)</span>`;
-            console.warn('⚠️ Firebase 연결 불안정');
-            return false;
-          }
-        } else {
-          console.error('❌ Firebase Manager 로드 완전 실패');
-          document.getElementById('firebaseStatus').innerHTML = 
-            `❌ <span class="text-red-400">Firebase Manager 로드 실패 (${retryCount}/${maxRetries} 시도)</span>`;
-          return false;
-        }
-      } catch (error) {
-        console.error('❌ Firebase 연결 확인 치명적 오류:', error);
-        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">Firebase 치명적 오류: ${error.message}</span>`;
-        
-        // 상세한 오류 정보 표시
-        if (error.code) {
-          const errorDetails = document.createElement('div');
-          errorDetails.className = 'text-red-300 text-sm mt-2 p-2 bg-red-900 bg-opacity-30 rounded';
-          errorDetails.innerHTML = `
-            <div class="font-bold">오류 코드: ${error.code}</div>
-            <div class="mt-1">${getErrorMessage(error.code)}</div>
-          `;
-          
-          const statusContainer = document.getElementById('firebaseStatus').parentElement;
-          statusContainer.appendChild(errorDetails);
-        }
-        
-        return false;
-      }
-    }
-    
-    // 오류 코드별 해결 방법 제시
-    function getErrorMessage(errorCode) {
-      const errorMessages = {
-        'permission-denied': '🔐 Firestore 보안 규칙을 테스트 모드로 변경하세요',
-        'unavailable': '🌐 인터넷 연결을 확인하고 Firebase 서비스 상태를 점검하세요',
-        'unauthenticated': '🔑 Firebase 프로젝트 설정 및 API 키를 확인하세요',
-        'not-found': '📁 Firestore 데이터베이스가 생성되었는지 확인하세요',
-        'failed-precondition': '⚙️ Firestore 데이터베이스가 올바르게 설정되었는지 확인하세요'
-      };
-      
-      return errorMessages[errorCode] || '❓ Firebase Console에서 프로젝트 상태를 확인하세요';
-    }
 
-    // Firebase 데이터 로드
-    async function loadFirebaseData() {
-      const container = document.getElementById('firebaseData');
-      container.textContent = '데이터 로딩 중...';
-      
-      try {
-        if (!firebaseManager) {
-          const connected = await checkFirebaseConnection();
-          if (!connected) {
-            container.textContent = 'Firebase 연결이 필요합니다.';
-            return;
-          }
+            const list = attendees.slice(0, 10).map(a => `
+                <div class="flex justify-between items-center py-2 border-b border-gray-600">
+                    <div>
+                        <span class="text-white font-medium">${a.name}</span>
+                        ${a.phone ? `<span class="text-gray-400 text-sm ml-2">(${a.phone})</span>` : ''}
+                    </div>
+                    <div>
+                        ${a.checkedIn ? 
+                            '<span class="bg-green-600 text-white px-2 py-1 rounded text-xs">✓ 체크인</span>' : 
+                            '<span class="bg-gray-600 text-white px-2 py-1 rounded text-xs">대기</span>'
+                        }
+                    </div>
+                </div>
+            `).join('');
+
+            element.innerHTML = `
+                <div class="space-y-1">
+                    ${list}
+                    ${attendees.length > 10 ? `<p class="text-gray-400 text-sm mt-4">... 외 ${attendees.length - 10}명 더</p>` : ''}
+                </div>
+            `;
         }
 
-        const attendees = await firebaseManager.getAttendees();
-        
-        if (attendees.length === 0) {
-          container.textContent = '📭 Firebase에 데이터가 없습니다.\n\n체크인을 해보거나 "샘플 데이터 추가" 버튼을 눌러주세요.';
-        } else {
-          container.textContent = JSON.stringify(attendees, null, 2);
-        }
-        
-        // 기본 통계 업데이트
-        document.getElementById('firebaseCount').textContent = attendees.length;
-        document.getElementById('checkedInCount').textContent = attendees.filter(a => a.checkedIn).length;
-        
-        // 상세 통계 업데이트
-        updateDetailedStats(attendees);
-        
-      } catch (error) {
-        console.error('Firebase 데이터 로드 오류:', error);
-        container.textContent = `오류 발생: ${error.message}`;
-      }
-    }
-
-    // localStorage 데이터 로드
-    function loadLocalStorageData() {
-      const container = document.getElementById('localStorageData');
-      
-      try {
-        const attendeesData = localStorage.getItem('attendees');
-        const cacheVersion = localStorage.getItem('cacheVersion');
-        const migrated = localStorage.getItem('firebase_migrated');
-        
-        const allData = {
-          attendees: attendeesData ? JSON.parse(attendeesData) : [],
-          cacheVersion: cacheVersion,
-          firebase_migrated: migrated,
-          storage_size: new Blob([attendeesData || '[]']).size
-        };
-        
-        if (allData.attendees.length === 0) {
-          container.textContent = '📭 localStorage에 데이터가 없습니다.\n\n' + JSON.stringify(allData, null, 2);
-        } else {
-          container.textContent = JSON.stringify(allData, null, 2);
-        }
-        
-        document.getElementById('localStorageCount').textContent = allData.attendees.length;
-        
-        // localStorage 기반 통계 업데이트
-        updateLocalStorageStats(allData.attendees);
-        
-      } catch (error) {
-        console.error('localStorage 데이터 로드 오류:', error);
-        container.textContent = `오류 발생: ${error.message}`;
-      }
-    }
-
-    // 샘플 데이터 추가 (테스트용)
-    async function addSampleData() {
-      if (!confirm('테스트용 샘플 데이터 5명을 추가하시겠습니까?\n\n🧪 이는 테스트 목적의 가짜 데이터입니다.')) return;
-      
-      const sampleAttendees = [
-        { name: '김테스트', phone: '010-1111-1111', checkedIn: true, isReal: false },
-        { name: '이샘플', phone: '010-2222-2222', checkedIn: false, isReal: false },
-        { name: '박데모', phone: '010-3333-3333', checkedIn: true, isReal: false },
-        { name: '정예시', phone: '010-4444-4444', checkedIn: false, isReal: false },
-        { name: '최더미', phone: '010-5555-5555', checkedIn: true, isReal: false }
-      ];
-
-      try {
-        if (firebaseManager) {
-          for (const attendee of sampleAttendees) {
-            await firebaseManager.addAttendee({
-              ...attendee,
-              checkedInAt: attendee.checkedIn ? new Date().toLocaleString('ko-KR') : '',
-              dataType: 'SAMPLE_DATA',
-              addedAt: new Date().toLocaleString('ko-KR')
-            });
-          }
-          alert('테스트용 샘플 데이터 5명이 Firebase에 추가되었습니다!');
-        } else {
-          let existingData = JSON.parse(localStorage.getItem('attendees') || '[]');
-          sampleAttendees.forEach(attendee => {
-            existingData.push({
-              id: Date.now().toString() + Math.random(),
-              ...attendee,
-              checkedInAt: attendee.checkedIn ? new Date().toLocaleString('ko-KR') : '',
-              dataType: 'SAMPLE_DATA'
-            });
-          });
-          localStorage.setItem('attendees', JSON.stringify(existingData));
-          alert('localStorage에 샘플 데이터가 추가되었습니다!');
-        }
-        
-        loadFirebaseData();
-        loadLocalStorageData();
-        
-      } catch (error) {
-        console.error('샘플 데이터 추가 오류:', error);
-        alert(`오류 발생: ${error.message}`);
-      }
-    }
-
-    // 데이터 분석
-    async function analyzeData() {
-      try {
-        let analysis = {
-          firebase: { total: 0, checkedIn: 0, sample: 0, real: 0 },
-          localStorage: { total: 0, checkedIn: 0 }
-        };
-
-        // Firebase 분석
-        if (firebaseManager) {
-          const firebaseData = await firebaseManager.getAttendees();
-          analysis.firebase.total = firebaseData.length;
-          analysis.firebase.checkedIn = firebaseData.filter(a => a.checkedIn).length;
-          analysis.firebase.sample = firebaseData.filter(a => a.dataType === 'SAMPLE_DATA').length;
-          analysis.firebase.real = firebaseData.filter(a => a.dataType === 'REAL_DATA').length;
-        }
-
-        // localStorage 분석
-        const localData = JSON.parse(localStorage.getItem('attendees') || '[]');
-        analysis.localStorage.total = localData.length;
-        analysis.localStorage.checkedIn = localData.filter(a => a.checkedIn).length;
-
-        const analysisText = `
-📊 데이터 분석 결과
-
-🔥 Firebase:
-• 전체: ${analysis.firebase.total}명
-• 체크인 완료: ${analysis.firebase.checkedIn}명
-• 샘플 데이터: ${analysis.firebase.sample}명
-• 실제 데이터: ${analysis.firebase.real}명
-• 기타 데이터: ${analysis.firebase.total - analysis.firebase.sample - analysis.firebase.real}명
-
-💾 localStorage:
-• 전체: ${analysis.localStorage.total}명
-• 체크인 완료: ${analysis.localStorage.checkedIn}명
-
-📈 통계:
-• Firebase 체크인률: ${analysis.firebase.total > 0 ? Math.round((analysis.firebase.checkedIn / analysis.firebase.total) * 100) : 0}%
-• localStorage 체크인률: ${analysis.localStorage.total > 0 ? Math.round((analysis.localStorage.checkedIn / analysis.localStorage.total) * 100) : 0}%
-        `;
-
-        alert(analysisText);
-        console.log('데이터 분석:', analysis);
-
-      } catch (error) {
-        console.error('데이터 분석 오류:', error);
-        alert(`분석 중 오류 발생: ${error.message}`);
-      }
-    }
-
-    // 전체 데이터 백업
-    async function exportAllData() {
-      try {
-        const backupData = {
-          timestamp: new Date().toLocaleString('ko-KR'),
-          firebase: null,
-          localStorage: null
-        };
-
-        // Firebase 데이터
-        if (firebaseManager) {
-          backupData.firebase = await firebaseManager.getAttendees();
-        }
-
-        // localStorage 데이터
-        backupData.localStorage = JSON.parse(localStorage.getItem('attendees') || '[]');
-
-        const dataStr = JSON.stringify(backupData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = `오산고_71회_송년회_백업_${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-
-        alert(`데이터가 백업되었습니다!\n\n총 ${(backupData.firebase?.length || 0) + (backupData.localStorage?.length || 0)}개 데이터가 포함되었습니다.`);
-
-      } catch (error) {
-        console.error('데이터 백업 오류:', error);
-        alert(`백업 중 오류 발생: ${error.message}`);
-      }
-    }
-
-    // 상세 통계 업데이트
-    async function updateDetailedStats(attendees = null) {
-      try {
-        // Firebase 데이터가 없으면 새로 로드
-        if (!attendees && firebaseManager) {
-          attendees = await firebaseManager.getAttendees();
-        }
-        
-        if (attendees && attendees.length > 0) {
-          // 데이터 타입별 분류
-          const realData = attendees.filter(a => a.dataType === 'REAL_DATA');
-          const sampleData = attendees.filter(a => a.dataType === 'SAMPLE_DATA');
-          const otherData = attendees.filter(a => !a.dataType || (a.dataType !== 'REAL_DATA' && a.dataType !== 'SAMPLE_DATA'));
-          
-          // 체크인 상태별 분류
-          const checkedIn = attendees.filter(a => a.checkedIn);
-          const pending = attendees.filter(a => !a.checkedIn);
-          
-          // Firebase 상세 통계 업데이트
-          document.getElementById('firebaseRealCount').textContent = `${realData.length}명`;
-          document.getElementById('firebaseSampleCount').textContent = `${sampleData.length}명`;
-          document.getElementById('firebaseOtherCount').textContent = `${otherData.length}명`;
-          document.getElementById('firebaseCheckedIn').textContent = `${checkedIn.length}명`;
-          document.getElementById('firebasePending').textContent = `${pending.length}명`;
-          
-          // 체크인률 계산
-          const checkInRate = attendees.length > 0 ? Math.round((checkedIn.length / attendees.length) * 100) : 0;
-          document.getElementById('checkInRate').textContent = `${checkInRate}%`;
-          
-          // 시간대별 분석
-          updateTimeAnalysis(attendees);
-          
-        } else {
-          // 데이터가 없을 때 초기화
-          resetStatsDisplay();
-        }
-        
-        // 마지막 업데이트 시간
-        document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('ko-KR');
-        
-      } catch (error) {
-        console.error('상세 통계 업데이트 오류:', error);
-      }
-    }
-
-    // 시간대별 분석
-    function updateTimeAnalysis(attendees) {
-      const now = new Date();
-      const today = now.toDateString();
-      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
-      
-      // 오늘 체크인
-      const todayCheckins = attendees.filter(a => {
-        if (!a.checkedInAt) return false;
-        const checkinDate = new Date(a.checkedInAt).toDateString();
-        return checkinDate === today && a.checkedIn;
-      });
-      
-      // 최근 1시간 체크인
-      const recentCheckins = attendees.filter(a => {
-        if (!a.checkedInAt) return false;
-        const checkinTime = new Date(a.checkedInAt);
-        return checkinTime >= oneHourAgo && a.checkedIn;
-      });
-      
-      // 체크인 시간들 수집
-      const checkinTimes = attendees
-        .filter(a => a.checkedIn && a.checkedInAt)
-        .map(a => new Date(a.checkedInAt))
-        .sort((a, b) => a - b);
-      
-      // 첫 번째와 마지막 체크인
-      const firstCheckin = checkinTimes.length > 0 ? checkinTimes[0] : null;
-      const lastCheckin = checkinTimes.length > 0 ? checkinTimes[checkinTimes.length - 1] : null;
-      
-      // 평균 체크인 간격 계산
-      let avgInterval = '-';
-      if (checkinTimes.length > 1) {
-        const totalTime = lastCheckin - firstCheckin;
-        const avgMs = totalTime / (checkinTimes.length - 1);
-        const avgMinutes = Math.round(avgMs / (1000 * 60));
-        avgInterval = `${avgMinutes}분`;
-      }
-      
-      // UI 업데이트
-      document.getElementById('todayCheckins').textContent = `${todayCheckins.length}명`;
-      document.getElementById('recentCheckins').textContent = `${recentCheckins.length}명`;
-      document.getElementById('avgInterval').textContent = avgInterval;
-      document.getElementById('firstCheckin').textContent = firstCheckin ? firstCheckin.toLocaleTimeString('ko-KR') : '-';
-      document.getElementById('lastCheckin').textContent = lastCheckin ? lastCheckin.toLocaleTimeString('ko-KR') : '-';
-    }
-
-    // localStorage 통계 업데이트
-    function updateLocalStorageStats(attendees) {
-      // localStorage 데이터도 Firebase와 동일한 방식으로 분석 가능
-      // 현재는 기본 카운트만 표시하지만 필요시 확장 가능
-    }
-
-    // 통계 표시 초기화
-    function resetStatsDisplay() {
-      const statElements = [
-        'firebaseRealCount', 'firebaseSampleCount', 'firebaseOtherCount',
-        'firebaseCheckedIn', 'firebasePending', 'checkInRate',
-        'todayCheckins', 'recentCheckins', 'avgInterval', 
-        'firstCheckin', 'lastCheckin'
-      ];
-      
-      statElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = '-';
-      });
-    }
-
-    // 실제 데이터 추가 (오산고 동기들 이름)
-    async function addRealData() {
-      if (!confirm('실제 행사용 데이터 10명을 추가하시겠습니까?\n\n⚠️ 이는 테스트 데이터가 아닌 실제 데이터입니다.')) return;
-      
-      const realAttendees = [
-        { name: '김영수', phone: '010-1234-5678', checkedIn: false, isReal: true },
-        { name: '이민호', phone: '010-2345-6789', checkedIn: false, isReal: true },
-        { name: '박지원', phone: '010-3456-7890', checkedIn: true, isReal: true },
-        { name: '정수현', phone: '010-4567-8901', checkedIn: false, isReal: true },
-        { name: '최동욱', phone: '010-5678-9012', checkedIn: true, isReal: true },
-        { name: '강민정', phone: '010-6789-0123', checkedIn: false, isReal: true },
-        { name: '윤서영', phone: '010-7890-1234', checkedIn: true, isReal: true },
-        { name: '임재현', phone: '010-8901-2345', checkedIn: false, isReal: true },
-        { name: '한지수', phone: '010-9012-3456', checkedIn: false, isReal: true },
-        { name: '조민수', phone: '010-0123-4567', checkedIn: true, isReal: true }
-      ];
-
-      try {
-        if (firebaseManager) {
-          for (const attendee of realAttendees) {
-            await firebaseManager.addAttendee({
-              ...attendee,
-              checkedInAt: attendee.checkedIn ? new Date().toLocaleString('ko-KR') : '',
-              dataType: 'REAL_DATA',
-              addedAt: new Date().toLocaleString('ko-KR')
-            });
-          }
-          alert('실제 데이터 10명이 Firebase에 추가되었습니다!');
-        } else {
-          alert('Firebase가 연결되지 않아 실제 데이터를 추가할 수 없습니다.');
-        }
-        
-        loadFirebaseData();
-        loadLocalStorageData();
-        
-      } catch (error) {
-        console.error('실제 데이터 추가 오류:', error);
-        alert(`오류 발생: ${error.message}`);
-      }
-    }
-
-    // Firebase 전체 데이터 삭제 (개선된 버전)
-    async function clearFirebaseData() {
-      // Firebase 연결 상태 재확인
-      if (!firebaseManager || !window.firebaseManager) {
-        alert('❌ Firebase가 연결되지 않았습니다.\n\n페이지를 새로고침하고 다시 시도해주세요.');
-        return;
-      }
-
-      const confirmMessage = `⚠️ 매우 위험한 작업입니다! ⚠️
-
-Firebase의 모든 참석자 데이터가 영구적으로 삭제됩니다.
-이 작업은 되돌릴 수 없습니다.
-
-정말로 모든 Firebase 데이터를 삭제하시겠습니까?
-
-삭제하려면 "DELETE"라고 정확히 입력하세요:`;
-
-      const userInput = prompt(confirmMessage);
-      
-      if (userInput !== 'DELETE') {
-        alert('취소되었습니다. 안전을 위해 정확한 텍스트를 입력해야 합니다.');
-        return;
-      }
-
-      try {
-        document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-red-400">Firebase 데이터 삭제 중...</span>';
-        console.log('🗑️ Firebase 데이터 삭제 시작...');
-        
-        // Firebase 연결 테스트
-        const connectionOk = await firebaseManager.testConnection();
-        if (!connectionOk) {
-          throw new Error('Firebase 연결 실패');
-        }
-        
-        const attendees = await firebaseManager.getAttendees();
-        console.log(`📋 삭제할 데이터: ${attendees.length}개`);
-        
-        if (attendees.length === 0) {
-          alert('삭제할 데이터가 없습니다.');
-          return;
-        }
-        
-        let deleteCount = 0;
-        let errorCount = 0;
-        
-        // 배치 삭제로 안정성 향상
-        for (let i = 0; i < attendees.length; i++) {
-          try {
-            const attendee = attendees[i];
-            console.log(`🗑️ 삭제 중 ${i+1}/${attendees.length}: ${attendee.name}`);
+        // 새로고침
+        function refreshData() {
+            document.getElementById('dataStatus').innerHTML = '<p class="text-blue-400">🔄 새로고침 중...</p>';
+            document.getElementById('attendeeData').innerHTML = '<p class="text-blue-400">👥 참석자 데이터 새로고침 중...</p>';
             
-            await firebaseManager.deleteAttendee(attendee.id);
-            deleteCount++;
-            
-            // UI 진행상태 표시
-            document.getElementById('firebaseStatus').innerHTML = 
-              `🔄 <span class="text-red-400">삭제 진행중... ${deleteCount}/${attendees.length}</span>`;
-              
-          } catch (error) {
-            console.error(`❌ 삭제 실패 ${attendee.name}:`, error);
-            errorCount++;
-          }
-          
-          // 너무 빠른 요청 방지
-          if (i % 5 === 0) {
-            await new Promise(resolve => setTimeout(resolve, 500));
-          }
+            setTimeout(() => {
+                checkFirebaseStatus();
+            }, 500);
         }
-        
-        const resultMessage = `✅ Firebase 삭제 완료!
-        
-📊 결과:
-• 성공: ${deleteCount}개
-• 실패: ${errorCount}개
-• 총 처리: ${attendees.length}개`;
 
-        alert(resultMessage);
-        console.log('🎯 Firebase 데이터 삭제 완료:', { deleteCount, errorCount, total: attendees.length });
-        
-        // UI 새로고침
-        loadFirebaseData();
-        loadLocalStorageData();
-        
-      } catch (error) {
-        console.error('❌ Firebase 데이터 삭제 치명적 오류:', error);
-        document.getElementById('firebaseStatus').innerHTML = `❌ <span class="text-red-400">삭제 실패: ${error.message}</span>`;
-        alert(`❌ 삭제 중 치명적 오류 발생: ${error.message}\n\n상세 오류는 개발자 도구 콘솔을 확인하세요.`);
-      }
-    }
-
-    // 모든 데이터 완전 삭제 (Firebase + localStorage) - 개선된 버전
-    async function clearAllData() {
-      const confirmMessage = `🚨 모든 데이터 완전 삭제 🚨
-
-다음 데이터가 모두 삭제됩니다:
-• Firebase의 모든 참석자 데이터
-• localStorage의 모든 로컬 데이터
-• 세션 스토리지 및 캐시 정보
-• 모든 설정 데이터
-
-⚠️ 이 작업은 절대 되돌릴 수 없습니다! ⚠️
-
-정말로 모든 데이터를 삭제하시겠습니까?
-삭제하려면 "CLEAR ALL"이라고 정확히 입력하세요:`;
-
-      const userInput = prompt(confirmMessage);
-      
-      if (userInput !== 'CLEAR ALL') {
-        alert('취소되었습니다. 안전을 위해 정확한 텍스트를 입력해야 합니다.');
-        return;
-      }
-
-      try {
-        console.log('🚨 전체 데이터 삭제 시작...');
-        let firebaseDeleteCount = 0;
-        let localStorageKeys = 0;
-        
-        // 1. Firebase 데이터 삭제
-        if (firebaseManager || window.firebaseManager) {
-          console.log('🔥 Firebase 데이터 삭제 중...');
-          document.getElementById('firebaseStatus').innerHTML = '🔄 <span class="text-red-400">Firebase 전체 삭제 중...</span>';
-          
-          try {
-            const manager = firebaseManager || window.firebaseManager;
-            const attendees = await manager.getAttendees();
-            console.log(`📋 Firebase 삭제 대상: ${attendees.length}개`);
-            
-            for (let i = 0; i < attendees.length; i++) {
-              const attendee = attendees[i];
-              await manager.deleteAttendee(attendee.id);
-              firebaseDeleteCount++;
-              
-              // 진행률 표시
-              if (i % 3 === 0) {
-                document.getElementById('firebaseStatus').innerHTML = 
-                  `🔄 <span class="text-red-400">Firebase 삭제: ${firebaseDeleteCount}/${attendees.length}</span>`;
-              }
+        // Firebase 테스트
+        async function testFirebase() {
+            if (!window.firebaseManager) {
+                alert('❌ Firebase Manager가 로드되지 않았습니다.');
+                return;
             }
-            
-            console.log(`✅ Firebase 삭제 완료: ${firebaseDeleteCount}개`);
-          } catch (firebaseError) {
-            console.error('❌ Firebase 삭제 오류:', firebaseError);
-            alert(`Firebase 삭제 중 오류: ${firebaseError.message}\n\nlocalStorage는 계속 삭제합니다.`);
-          }
-        } else {
-          console.log('⚠️ Firebase Manager 없음 - Firebase 삭제 건너뜀');
+
+            try {
+                const testData = {
+                    id: 'test-' + Date.now(),
+                    name: '테스트 사용자',
+                    phone: '010-1234-5678',
+                    checkedIn: false,
+                    timestamp: new Date().toISOString()
+                };
+
+                await window.firebaseManager.addAttendee(testData);
+                alert('✅ Firebase 테스트 성공! 테스트 사용자가 추가되었습니다.');
+                refreshData();
+            } catch (error) {
+                alert('❌ Firebase 테스트 실패: ' + error.message);
+            }
         }
-        
-        // 2. localStorage 완전 초기화
-        console.log('💾 localStorage 삭제 중...');
-        
-        // localStorage 키 개수 확인
-        localStorageKeys = localStorage.length;
-        const localStorageData = localStorage.getItem('attendees');
-        const localAttendeeCount = localStorageData ? JSON.parse(localStorageData).length : 0;
-        
-        // 모든 localStorage 데이터 삭제
-        localStorage.clear();
-        
-        // 3. sessionStorage도 삭제
-        sessionStorage.clear();
-        
-        // 4. 상태 업데이트
-        document.getElementById('firebaseStatus').innerHTML = '✅ <span class="text-green-400">전체 삭제 완료</span>';
-        
-        const completionMessage = `🎯 모든 데이터 삭제 완료!
 
-📊 삭제된 데이터:
-• Firebase 참석자: ${firebaseDeleteCount}개
-• localStorage 항목: ${localStorageKeys}개 (참석자 ${localAttendeeCount}명 포함)
-• sessionStorage: 모든 데이터
-• 브라우저 캐시: 초기화됨
+        // 로그 보기
+        function showLogs() {
+            console.log('=== 디버그 정보 ===');
+            console.log('Firebase Manager:', window.firebaseManager);
+            console.log('참석자 데이터:', attendees);
+            console.log('현재 시간:', new Date().toISOString());
+            alert('🔍 브라우저 개발자도구 콘솔을 확인하세요.\n\nF12 → Console 탭에서 상세 로그를 볼 수 있습니다.');
+        }
 
-✅ 시스템이 완전히 초기화되었습니다.`;
-
-        alert(completionMessage);
-        console.log('🎉 전체 데이터 삭제 성공:', {
-          firebaseDeleted: firebaseDeleteCount,
-          localStorageKeys: localStorageKeys,
-          localAttendees: localAttendeeCount
+        // 페이지 로드 시 실행
+        window.addEventListener('load', function() {
+            console.log('🔧 디버그 페이지 로드됨');
+            
+            // Firebase 로드 대기
+            setTimeout(checkFirebaseStatus, 1000);
+            
+            // 주기적 상태 체크
+            setInterval(checkFirebaseStatus, 10000);
         });
-        
-        // 5. UI 새로고침
-        loadFirebaseData();
-        loadLocalStorageData();
-        updateDetailedStats();
-        
-        // 6. 강제 페이지 새로고침 (완전 초기화 보장)
-        setTimeout(() => {
-          if (confirm('완전한 초기화를 위해 페이지를 새로고침하시겠습니까?')) {
-            window.location.reload(true);
-          }
-        }, 1000);
-        
-      } catch (error) {
-        console.error('❌ 전체 데이터 삭제 치명적 오류:', error);
-        alert(`❌ 전체 삭제 중 치명적 오류 발생: ${error.message}\n\n상세 오류는 개발자 도구 콘솔을 확인하세요.`);
-      }
-    }
-
-    // localStorage 초기화 (개선된 안전 버전)
-    function clearLocalStorage() {
-      try {
-        const localData = localStorage.getItem('attendees');
-        const dataCount = localData ? JSON.parse(localData).length : 0;
-        const totalKeys = localStorage.length;
-        
-        const confirmMessage = `💾 localStorage 데이터 삭제
-        
-📊 삭제 대상:
-• 참석자 데이터: ${dataCount}개
-• 전체 localStorage 항목: ${totalKeys}개
-• 캐시 및 설정 정보
-
-⚠️ 이 작업은 되돌릴 수 없습니다.
-
-정말 삭제하시겠습니까?`;
-        
-        if (!confirm(confirmMessage)) {
-          console.log('localStorage 삭제 취소됨');
-          return;
-        }
-        
-        console.log('💾 localStorage 삭제 시작...', { dataCount, totalKeys });
-        
-        // 백업 생성 (선택적)
-        if (dataCount > 0) {
-          const backupKey = `attendees_backup_${Date.now()}`;
-          localStorage.setItem(backupKey, localData);
-          console.log(`📦 백업 생성: ${backupKey}`);
-        }
-        
-        // 주요 데이터 삭제
-        localStorage.removeItem('attendees');
-        localStorage.removeItem('cacheVersion');
-        localStorage.removeItem('firebase_migrated');
-        localStorage.removeItem('invitationVersion');
-        localStorage.removeItem('pageVersion');
-        localStorage.removeItem('forceReload');
-        
-        // 추가 청소 (동기 관련 데이터)
-        for (let i = localStorage.length - 1; i >= 0; i--) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith('osan') || key.startsWith('attendee') || key.includes('cache'))) {
-            localStorage.removeItem(key);
-          }
-        }
-        
-        const successMessage = `✅ localStorage 삭제 완료!
-        
-📊 결과:
-• 참석자 데이터: ${dataCount}개 삭제
-• localStorage 정리: ${totalKeys}개 항목 처리
-• 백업: ${dataCount > 0 ? '생성됨' : '필요없음'}
-
-시스템이 깔끔하게 초기화되었습니다.`;
-
-        alert(successMessage);
-        console.log('✅ localStorage 삭제 완료');
-        
-        // UI 새로고침
-        loadLocalStorageData();
-        updateDetailedStats();
-        
-      } catch (error) {
-        console.error('❌ localStorage 삭제 오류:', error);
-        alert(`localStorage 삭제 중 오류 발생: ${error.message}`);
-      }
-    }
-
-    // Firebase 준비 완료 이벤트 리스너
-    window.addEventListener('firebaseReady', function(event) {
-      console.log('🎉 Firebase 준비 완료 이벤트 수신');
-      firebaseManager = event.detail.firebaseManager;
-      checkFirebaseConnection();
-    });
-
-    // 페이지 로드 시 실행
-    window.addEventListener('load', async function() {
-      console.log('📄 페이지 로드 완료');
-      
-      // localStorage 데이터는 즉시 로드
-      loadLocalStorageData();
-      
-      // Firebase는 준비될 때까지 대기
-      if (window.firebaseManager) {
-        console.log('🔥 Firebase Manager 이미 준비됨');
-        await checkFirebaseConnection();
-        if (firebaseManager) {
-          loadFirebaseData();
-        }
-      } else {
-        console.log('⏳ Firebase Manager 준비 대기 중...');
-        // firebaseReady 이벤트를 기다리거나 재시도
-        setTimeout(async () => {
-          if (window.firebaseManager) {
-            await checkFirebaseConnection();
-            if (firebaseManager) {
-              loadFirebaseData();
-            }
-          }
-        }, 2000);
-      }
-    });
-  </script>
+    </script>
 </body>
 </html>
