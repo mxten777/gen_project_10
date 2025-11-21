@@ -1067,23 +1067,45 @@
       }
       
       try {
+        // 🚨 생성 중 플래그 설정 (중복 생성 방지)
+        if (window.generatingSample) {
+          alert('⚠️ 이미 샘플 데이터를 생성 중입니다. 완료 후 다시 시도해주세요.');
+          return;
+        }
+        window.generatingSample = true;
+        
         // 1. Firebase 연결 상태 확인
         if (!window.firebaseManager) {
           alert('❌ Firebase가 연결되지 않았습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+          window.generatingSample = false;
           return;
         }
         
-        // 2. 현재 데이터 상태 확인
+        // 2. 실시간 리스너 일시 중단 (간섭 방지)
+        console.log('🛑 실시간 리스너 일시 중단');
+        let wasListenerActive = false;
+        if (firebaseUnsubscribe) {
+          firebaseUnsubscribe();
+          firebaseUnsubscribe = null;
+          wasListenerActive = true;
+        }
+        
+        // 3. 현재 데이터 상태 확인
         console.log('📊 현재 데이터 상태 확인 중...');
         const currentData = await window.firebaseManager.getAttendees();
         const currentSampleCount = currentData.filter(a => a.dataType === 'SAMPLE_DATA').length;
         const currentTotalCount = currentData.length;
         
-        console.log(`현재 상태: 총 ${currentTotalCount}명 (샘플: ${currentSampleCount}명)`);
+        console.log(`🔍 정확한 현재 상태: 총 ${currentTotalCount}명 (샘플: ${currentSampleCount}명)`);
+        console.log(`🎯 요청된 생성 개수: ${count}명`);
         
-        // 3. 안전성 확인
+        // 4. 안전성 확인
         if (currentTotalCount + count > 100) {
           if (!confirm(`⚠️ 총 데이터가 ${currentTotalCount + count}개가 됩니다.\n(현재 ${currentTotalCount}개 + 생성 ${count}개)\n\n계속하시겠습니까?`)) {
+            window.generatingSample = false;
+            if (wasListenerActive) {
+              loadAttendeesFromFirebase(); // 리스너 재시작
+            }
             return;
           }
         }
@@ -1181,30 +1203,52 @@
           }
         }
         
-        // 5. 생성 완료 보고 (실시간 리스너가 자동으로 UI 업데이트함)
+        // 5. 생성 완료 후 검증
         console.log(`🎭 샘플 데이터 생성 완료: 성공 ${successCount}개, 건너뜀 ${skipCount}개`);
+        console.log(`📊 요청: ${count}개 → 실제 생성: ${successCount}개`);
+        
+        // 6. Firebase에서 실제 데이터 확인
+        const finalData = await window.firebaseManager.getAttendees();
+        const finalSampleCount = finalData.filter(a => a.dataType === 'SAMPLE_DATA').length;
+        const finalTotalCount = finalData.length;
+        
+        console.log(`✅ 최종 검증: 총 ${finalTotalCount}명 (샘플: ${finalSampleCount}명)`);
+        console.log(`📈 증가량: +${finalTotalCount - currentTotalCount}명`);
+        
+        // 7. UI 업데이트 (리스너 없으므로 수동)
+        attendees = finalData;
+        renderAttendees();
+        updateStats();
+        
+        // 8. 실시간 리스너 재시작
+        if (wasListenerActive) {
+          console.log('🔄 실시간 리스너 재시작');
+          loadAttendeesFromFirebase();
+        }
         
         updateFirebaseStatus('online', `✅ 샘플 생성 완료 (성공: ${successCount}개)`);
         
         const resultMessage = successCount > 0 
-          ? `✅ ${successCount}명의 샘플 데이터가 생성되었습니다!` + (skipCount > 0 ? `\n⏭️ ${skipCount}개는 중복으로 건너뛰었습니다.` : '')
+          ? `✅ 정확히 ${successCount}명의 샘플 데이터가 생성되었습니다!` + 
+            (skipCount > 0 ? `\n⏭️ ${skipCount}개는 중복으로 건너뛰었습니다.` : '') +
+            `\n\n📊 현재 총 ${finalTotalCount}명 (샘플: ${finalSampleCount}명)`
           : `⚠️ 중복으로 인해 생성된 데이터가 없습니다.\n기존 샘플 데이터를 먼저 삭제해주세요.`;
         
         alert(resultMessage);
         
-        // 실시간 리스너가 비활성화된 경우에만 수동 업데이트
-        if (!firebaseUnsubscribe) {
-          console.log('🔄 실시간 리스너 없음 - 수동 업데이트');
-          const finalData = await window.firebaseManager.getAttendees();
-          attendees = finalData;
-          renderAttendees();
-          updateStats();
-        }
+        // 9. 생성 플래그 해제
+        window.generatingSample = false;
         
       } catch (error) {
-        console.error('샘플 데이터 생성 오류:', error);
+        console.error('🚨 샘플 데이터 생성 오류:', error);
         updateFirebaseStatus('offline', '❌ 생성 실패');
         alert(`샘플 데이터 생성 중 오류 발생: ${error.message}`);
+        
+        // 오류 시에도 리스너 재시작 및 플래그 해제
+        if (wasListenerActive) {
+          loadAttendeesFromFirebase();
+        }
+        window.generatingSample = false;
       }
     }
 
