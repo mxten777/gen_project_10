@@ -49,15 +49,15 @@
         <!-- ヘッダー -->
         <div class="header-gradient text-white p-3">
             <div class="flex items-center mb-4">
-                <img src="images/osan_log3.svg" alt="五山高校ロゴ" class="w-8 h-8 mr-2">
+                <span class="text-2xl mr-2" title="강둑忘年会">🐋</span>
                 <div>
-                    <h1 class="text-sm font-bold">五山高等学校</h1>
-                    <p class="text-xs opacity-80">OSAN HIGH SCHOOL</p>
+                    <h1 class="text-sm font-bold">2025年カンドク忘年会</h1>
+                    <p class="text-xs opacity-80">GANGDUK REUNION</p>
                 </div>
             </div>
             <div class="reunion-badge rounded-xl py-2 px-3 text-white text-center">
-                <h2 class="text-lg font-black">71期同窓会にご招待します</h2>
-                <p class="text-xs opacity-90">CLASS OF 1981 REUNION</p>
+                <h2 class="text-lg font-black leading-snug">2025年カンドク忘年会に<br class="sm:hidden">ご招待します</h2>
+                <p class="text-xs opacity-90 mt-2">CLASS OF 1981 REUNION</p>
             </div>
         </div>
 
@@ -65,9 +65,9 @@
         <div class="p-3 space-y-3">
             <!-- メッセージ -->
             <div class="text-center bg-yellow-50 rounded-lg p-2">
-                <p class="text-sm text-gray-700 font-medium">
-                    🌟 <strong>久しぶりに会えてとても嬉しいです</strong> 🌟<br>
-                    <span class="text-xs">2025年の年末を一緒に締めくくりましょう</span>
+                <p class="text-sm text-gray-700 font-medium leading-snug">
+                    🌟 <strong>一緒だからもっと輝く私たち</strong> 🌟<br>
+                    <span class="text-xs block">カンドクで<br class="sm:hidden">新しい思い出を作ります</span>
                 </p>
             </div>
 
@@ -76,21 +76,21 @@
                 <h3 class="text-sm font-bold text-blue-800 mb-1.5 flex items-center">
                     📅 イベント案内
                 </h3>
-                <div class="text-xs space-y-1 text-gray-700">
-                    <div><span class="font-medium">日時:</span> 2025年11月29日(土) 14:00~17:00</div>
-                    <div><span class="font-medium">場所:</span> ソウル大入口駅 <span class="font-bold text-orange-600">ココダッカルビ</span></div>
-                    <div><span class="font-medium">人数:</span> 約54名予定</div>
+                <div class="text-xs space-y-1 text-gray-700 leading-relaxed">
+                    <div><span class="font-medium">日時:</span> 2025年12月10日(水)<br class="sm:hidden">14:00~</div>
+                    <div><span class="font-medium">場所:</span> サダン駅10番出口 ジェキビリヤードクラブ</div>
+                    <div><span class="font-medium">人数:</span> 7~8名予定</div>
                 </div>
             </div>
 
             <!-- プログラム -->
             <div class="section-card rounded-lg p-2.5">
                 <h3 class="text-sm font-bold text-blue-800 mb-1.5">🎉 主なスケジュール</h3>
-                <div class="text-xs space-y-0.5 text-gray-600">
-                    <div>• 入場・出席確認 / 開会・司会者挨拶</div>
-                    <div>• サークル紹介・後援者紹介</div>
-                    <div>• 同期代表挨拶・校歌斉唱</div>
-                    <div>• 乾杯・食事・自由懇談</div>
+                <div class="text-xs space-y-0.5 text-gray-600 leading-snug">
+                    <div>• 入場・出席確認</div>
+                    <div>• 開会の辞</div>
+                    <div>• ビリヤード 一試合</div>
+                    <div>• 食事・自由懇談</div>
                     <div>• 集合写真撮影・閉会案内</div>
                 </div>
             </div>
@@ -103,10 +103,7 @@
                         <div class="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
                     </div>
                 </div>
-                <p class="text-xs text-blue-700 font-medium mb-1">QRスキャンまたは下記リンク</p>
-                <div class="bg-blue-50 rounded p-1.5">
-                    <p class="text-xs font-mono text-blue-800 break-all" id="checkinUrl">リンク生成中...</p>
-                </div>
+                <p class="text-xs text-blue-700 font-medium mb-1">QRスキャン</p>
             </div>
 
             <!-- 結び -->
@@ -117,8 +114,8 @@
                     <span>🍻</span>
                     <span>❤️</span>
                 </div>
-                <p class="text-xs text-gray-600 font-medium">
-                    11月29日、ソウル大入口駅ココダッカルビで懐かしいお顔にお会いできることを楽しみにしております
+                <p class="text-xs text-gray-600 font-medium leading-snug">
+                    12月10日、サダン駅10番出口 ジェキビリヤードクラブで<br>懐かしいお顔にお会いできることを楽しみにしております
                 </p>
             </div>
         </div>
@@ -144,7 +141,6 @@
                 }
             }
             
-            document.getElementById('checkinUrl').textContent = checkinUrl;
             
             // QRコード生成
             const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(checkinUrl)}&margin=8&bgcolor=ffffff&color=000000`;
